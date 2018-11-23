@@ -1,21 +1,10 @@
 package main
 
-import (
-	"github.com/labstack/echo"
-)
+import "net/http"
 
 func main() {
-	e := echo.New()
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Response().Header().Set("Cache-Control", "max-age=100")
-			return next(c)
-		}
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`hello world`))
 	})
-	e.Static("/hello", "httpcachecontrol/view")
-	e.File("/hello", "httpcachecontrol/view/*.html")
-	err := e.Start(":2234")
-	if err != nil {
-		panic(err)
-	}
+	http.ListenAndServe(":2234", nil) // <-今天讲的就是这个ListenAndServe是如何工作的
 }
