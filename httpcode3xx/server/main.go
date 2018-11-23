@@ -11,7 +11,7 @@ func main() {
 		return c.Redirect(302, "www.baidu.com")
 	})
 
-	err := e.Start(":1234")
+	err := e.Start(":2234")
 	if err != nil {
 		panic(err)
 	}
