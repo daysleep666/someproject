@@ -21,7 +21,8 @@ func main() {
 			Path: %s<br>
 		  </code>
 		`
-		// c.Request().Header().Set("Connection", "keep-alive")
+
+		c.Response().Header().Set("Connection", "keep-alive")
 
 		return c.HTML(http.StatusOK, fmt.Sprintf(format, req.Proto, req.Host, req.RemoteAddr, req.Method, req.URL.Path))
 	})
