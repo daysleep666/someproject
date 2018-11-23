@@ -11,6 +11,7 @@ func main() {
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			fmt.Println("经过了mid")
+			c.Response().Header().Set("Cache-Control", "max-age=8000")
 			return next(c)
 		}
 	})
