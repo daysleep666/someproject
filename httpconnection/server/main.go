@@ -24,7 +24,7 @@ func main() {
 		return c.HTML(http.StatusOK, fmt.Sprintf(format, req.Proto, req.Host, req.RemoteAddr, req.Method, req.URL.Path))
 	})
 
-	err := e.StartTLS(":1235", "cert.pem", "key.pem")
+	err := e.Start(":2234")
 	if err != nil {
 		panic(err)
 	}
