@@ -1,20 +1,30 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo"
 )
 
 func main() {
 	e := echo.New()
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Response().Header().Set("Cache-Control", "no-store")
-			return next(c)
-		}
+
+	e.GET("/request", func(c echo.Context) error {
+		req := c.Request()
+		format := `
+		  <code>
+			Protocol: %s<br>
+			Host: %s<br>
+			Remote Address: %s<br>
+			Method: %s<br>
+			Path: %s<br>
+		  </code>
+		`
+		return c.HTML(http.StatusOK, fmt.Sprintf(format, req.Proto, req.Host, req.RemoteAddr, req.Method, req.URL.Path))
 	})
-	e.Static("/hello", "httpcachecontrol/view")
-	e.File("/hello", "httpcachecontrol/view/*.html")
-	err := e.Start(":2234")
+
+	err := e.StartTLS(":1235", "cert.pem", "key.pem")
 	if err != nil {
 		panic(err)
 	}
