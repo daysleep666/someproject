@@ -1,4 +1,4 @@
-package main
+package singlelist
 
 import (
 	"fmt"
@@ -12,7 +12,6 @@ type OneNode struct {
 }
 
 func AddNode(_oneNode *OneNode, _newData int) *OneNode { // 传的是指针的拷贝
-	fmt.Printf("%v\n", &_oneNode)
 	if _oneNode == nil {
 		_oneNode = new(OneNode)
 		_oneNode.Data = _newData
