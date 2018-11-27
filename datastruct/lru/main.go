@@ -13,17 +13,13 @@ const MAXNODESIZE int = 10
 
 var nodeSize int
 
-func AddNode(_oneNode *OneNode, _newData int) *OneNode { // 传的是指针的拷贝
-	fmt.Printf("%v\n", &_oneNode)
-	if _oneNode == nil {
-		_oneNode = new(OneNode)
-		_oneNode.Data = _newData
-		nodeSize++
-		return _oneNode
+func InsertToHeadNode(_oneNode *OneNode, _newData int) *OneNode { // 传的是指针的拷贝
+	tmpNode := &OneNode{
+		Data: _newData,
+		Next: _oneNode,
 	}
-
-	_oneNode.Next = AddNode(_oneNode.Next, _newData)
-	return _oneNode
+	nodeSize++
+	return tmpNode
 }
 
 func DisplayNode(_oneNode *OneNode) {
@@ -32,6 +28,26 @@ func DisplayNode(_oneNode *OneNode) {
 	}
 	fmt.Println(_oneNode.Data)
 	DisplayNode(_oneNode.Next)
+}
+
+func DeleteLastNode(_oneNode *OneNode) *OneNode {
+	if _oneNode == nil {
+		return nil
+	}
+	var (
+		tmpNode   = _oneNode
+		frontNode *OneNode
+	)
+	for tmpNode.Next != nil {
+		frontNode = tmpNode
+		tmpNode = tmpNode.Next
+	}
+	if frontNode == nil {
+		return nil
+	}
+	frontNode.Next = nil
+	nodeSize--
+	return _oneNode
 }
 
 func DeleteNode(_oneNode *OneNode, _needDeleteData int) *OneNode {
@@ -51,30 +67,42 @@ func DeleteNode(_oneNode *OneNode, _needDeleteData int) *OneNode {
 
 func ViewNode(_oneNode *OneNode, _viewValue int) *OneNode {
 	// 先在链表里找这个值
-	// 1.找不到
-	// 1.1空间未满，插入到头节点
-	if _oneNode == nil {
-		return AddNode(_oneNode, _viewValue)
-	}
-
-	var tmpNode = _oneNode
-	for tmpNode.Data != _viewValue {
-		tmpNode = tmpNode.Next
-		if tmpNode == nil {
-			break
+	var (
+		tmpNode  = _oneNode
+		headNode = _oneNode
+	)
+	if tmpNode != nil {
+		for tmpNode.Data != _viewValue {
+			tmpNode = tmpNode.Next
+			if tmpNode == nil {
+				break
+			}
 		}
 	}
 
-	if tmpNode == nil && nodeSize < MAXNODESIZE {
-		return AddNode(_oneNode, _viewValue)
+	if tmpNode == nil {
+		// 1.找不到
+		if nodeSize < MAXNODESIZE {
+			// 1.1空间未满，插入到头节点
+			return InsertToHeadNode(headNode, _viewValue)
+		}
+		// 1.2空间已满，删除最后一个节点，并插入到头节点
+		headNode = DeleteLastNode(headNode)
+		return InsertToHeadNode(headNode, _viewValue)
 	}
 
-	// 1.2空间已满，删除最后一个节点，并插入到头节点
-
 	// 2.找到，就将这个值从当前位置移到头节点
-	return nil
+	headNode = DeleteNode(headNode, tmpNode.Data)
+	return InsertToHeadNode(headNode, _viewValue)
 }
 
 func main() {
-
+	var headNode *OneNode
+	for i := 0; i < 10; i++ {
+		headNode = ViewNode(headNode, i)
+	}
+	headNode = ViewNode(headNode, 2)
+	headNode = ViewNode(headNode, 11)
+	headNode = ViewNode(headNode, 7)
+	DisplayNode(headNode)
 }
