@@ -6,8 +6,8 @@ import (
 
 func main() {
 	var num int64 = 65535
-	decodeResult := zigzagDecode(int64(num))
-	encodeResult := zigzagEncode(decodeResult)
+	decodeResult := zigzagEecode(int64(num))
+	encodeResult := zigzagDncode(decodeResult)
 	fmt.Println(decodeResult, "-->", encodeResult)
 }
 
