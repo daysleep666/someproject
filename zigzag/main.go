@@ -11,7 +11,7 @@ func main() {
 	fmt.Println(decodeResult, "-->", encodeResult)
 }
 
-func zigzagDecode(_num int64) []byte {
+func zigzagEecode(_num int64) []byte {
 	var result []byte
 	for {
 		if _num>>7&0x7f == 0 {
@@ -25,7 +25,7 @@ func zigzagDecode(_num int64) []byte {
 	}
 }
 
-func zigzagEncode(_decode []byte) int64 {
+func zigzagDncode(_decode []byte) int64 {
 	var result int64
 	for i, v := range _decode {
 		var tmp int64 = int64(v)
