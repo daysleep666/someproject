@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	MAXLEVEL           = 32
+	LIFTINGPROBABILITY = 50 // 50%
+)
+
 type OneNode struct {
 	Data      int
 	NextNodes []*OneNode // 每一层的下一个节点
@@ -19,23 +24,25 @@ type SkipList struct {
 func NewSkipList() *SkipList {
 	return &SkipList{
 		Level:    1,
-		HeadNode: &OneNode{NextNodes: make([]*OneNode, 2)},
+		HeadNode: &OneNode{NextNodes: make([]*OneNode, MAXLEVEL)},
 	}
 }
 
 // 由小到大
 func (skipList *SkipList) InsertNode(_newData int) {
 	var (
-		level       = skipList.Level
 		frontNode   = skipList.HeadNode
 		tmpNode     *OneNode
-		updateNodes = make([]*OneNode, skipList.Level+1) // 记录
+		updateNodes = make([]*OneNode, MAXLEVEL) // 记录
 	)
 
 	// 先找到插入的位置， 记录每层向下移动的点
-	for i := level; i >= 0; i-- {
+	for i := skipList.Level; i >= 0; i-- {
 		tmpNode = frontNode.NextNodes[i]
-		for tmpNode != nil && tmpNode.Data < _newData { // 在本层找到符合条件的点
+		for tmpNode != nil && tmpNode.Data <= _newData { // 在本层找到符合条件的点
+			if tmpNode.Data == _newData { // 不允许重复
+				return
+			}
 			frontNode = tmpNode
 			tmpNode = tmpNode.NextNodes[i]
 		}
@@ -43,19 +50,12 @@ func (skipList *SkipList) InsertNode(_newData int) {
 	}
 
 	// 计算需要提升几层
-	var willImproveLevel int
-	for i := 0; i <= level; i++ {
-		if !needToImprove() {
-			// 不需要提升
-			break
-		}
-		willImproveLevel = i
-	}
+	var willImproveLevel = needToImprove()
 
-	// 产生了新的一层
-	if willImproveLevel >= level {
+	// 产生了新层
+	for willImproveLevel >= skipList.Level {
+		updateNodes[skipList.Level] = skipList.HeadNode
 		skipList.Level++
-		skipList.HeadNode.NextNodes = append(skipList.HeadNode.NextNodes, nil)
 	}
 
 	// 生成新的节点
@@ -69,7 +69,32 @@ func (skipList *SkipList) InsertNode(_newData int) {
 }
 
 func (skipList *SkipList) Delete(_value int) {
-
+	var (
+		tmpNode   = skipList.HeadNode
+		frontNode *OneNode
+	)
+	for i := skipList.Level - 1; i >= 0; i-- {
+		tmpNode = skipList.HeadNode.NextNodes[i]
+		frontNode = nil
+		for tmpNode != nil {
+			for tmpNode.Data == _value {
+				if frontNode == nil {
+					skipList.Level--
+					break
+				}
+				frontNode.NextNodes[i] = tmpNode.NextNodes[i]
+				tmpNode = tmpNode.NextNodes[i]
+				if tmpNode == nil {
+					break
+				}
+			}
+			if tmpNode == nil || tmpNode.Data > _value {
+				break
+			}
+			frontNode = tmpNode
+			tmpNode = tmpNode.NextNodes[i]
+		}
+	}
 }
 
 func (skipList *SkipList) Find(_value int) bool {
@@ -77,14 +102,15 @@ func (skipList *SkipList) Find(_value int) bool {
 		tmpNode   = skipList.HeadNode
 		frontNode = skipList.HeadNode
 	)
-
+	fmt.Printf("搜索路径: ")
 	for i := skipList.Level - 1; i >= 0; i-- {
 		tmpNode = frontNode.NextNodes[i]
 		for tmpNode != nil {
-			fmt.Println("here ", tmpNode.Data)
 			if tmpNode.Data == _value {
+				fmt.Printf("%v\n", _value)
 				return true
 			}
+			fmt.Printf("%v-->", tmpNode.Data)
 			if tmpNode.Data > _value {
 				break
 			}
@@ -92,6 +118,7 @@ func (skipList *SkipList) Find(_value int) bool {
 			tmpNode = tmpNode.NextNodes[i]
 		}
 	}
+	fmt.Printf("none\n")
 	return false
 }
 
@@ -101,7 +128,7 @@ func (skipList *SkipList) Display() {
 	)
 
 	for i := skipList.Level - 1; i >= 0; i-- {
-		fmt.Printf("Level is %v   :", i)
+		fmt.Printf("Level %v   :", i)
 		tmpNode = skipList.HeadNode.NextNodes[i]
 		for tmpNode != nil {
 			fmt.Printf(" %v", tmpNode.Data)
@@ -111,23 +138,32 @@ func (skipList *SkipList) Display() {
 	}
 }
 
-func needToImprove() bool { // 50%几率 是否提升
+func needToImprove() int { //  是否提升
 	s := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(s)
-	randValue := r.Intn(2)
-	return randValue == 0
+
+	var newLevel int
+	for i := 0; i < MAXLEVEL; i++ {
+		randValue := r.Intn(100)
+		if randValue < LIFTINGPROBABILITY {
+			newLevel++
+		} else {
+			break
+		}
+	}
+	return newLevel
 }
 
 func main() {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	var skipListNode = NewSkipList()
-	for i := 0; i < 10; i++ {
-		skipListNode.InsertNode(r.Intn(100))
+	for i := 0; i < 1000; i++ {
+		skipListNode.InsertNode(r.Intn(1000))
 	}
-	skipListNode.InsertNode(77)
-
 	skipListNode.Display()
-
-	fmt.Println(skipListNode.Find(77))
+	// fmt.Println("---------------")
+	// skipListNode.Delete(77)
+	// skipListNode.Display()
+	// fmt.Println(skipListNode.Find(77))
 }
