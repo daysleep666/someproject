@@ -64,6 +64,15 @@ func getNewNode(_level int) *ZskipListNode {
 	return znode
 }
 
+// 总结下span的计算方法
+// 1.计算出第i层头节点到updateNode[i]节点的长度，存在rank[i]中
+// 2.计算高度
+// 2.1 如果计算出的高度大于当前高度，就将大于高度的部分设置为Length
+// 2.2 如果计算出的高度小于当前高度，就将大于等于计算出高度到当前高度到部分补一个一。因为下面到层多了一个节点
+// 3 rank[0]++ 等于 头节点到新节点的长度
+// 4.新节点到下一个节点的span = 新节点的上一个节点的span - (头节点到新节点的长度 - 头节点到新节点上一个节点的长度)
+// 5.新节点上一个节点到新节点的span = 头节点到新节点的长度 - 头节点到新节点上一个节点的长度
+
 func (zln *ZskipList) Insert(_member string, _newScore int) {
 	var (
 		updateNode = make([]*ZskipListNode, ZSKIPLIST_MAXLEVEL)
