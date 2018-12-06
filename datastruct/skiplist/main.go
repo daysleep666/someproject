@@ -41,7 +41,7 @@ func (skipList *SkipList) InsertNode(_newData int) {
 		tmpNode = frontNode.NextNodes[i]
 		for tmpNode != nil && tmpNode.Data <= _newData { // 在本层找到符合条件的点
 			if tmpNode.Data == _newData { // 不允许重复
-				return
+				// return
 			}
 			frontNode = tmpNode
 			tmpNode = tmpNode.NextNodes[i]
@@ -52,17 +52,33 @@ func (skipList *SkipList) InsertNode(_newData int) {
 	// 计算需要提升几层
 	var willImproveLevel = needToImprove()
 
-	// 产生了新层
-	for willImproveLevel >= skipList.Level {
-		updateNodes[skipList.Level] = skipList.HeadNode
-		skipList.Level++
+	fmt.Printf("前：")
+	for _, v := range updateNodes {
+		if v != nil {
+			fmt.Printf("%v，", v.Data)
+		}
 	}
-
+	// 产生了新层
+	for {
+		updateNodes[skipList.Level] = skipList.HeadNode
+		if skipList.Level >= willImproveLevel {
+			break
+		} else {
+			skipList.Level++
+		}
+	}
+	fmt.Printf("后：")
+	for _, v := range updateNodes {
+		if v != nil {
+			fmt.Printf("%v，", v.Data)
+		}
+	}
+	fmt.Println()
 	// 生成新的节点
-	var newNode = &OneNode{Data: _newData, NextNodes: make([]*OneNode, willImproveLevel+1)}
+	var newNode = &OneNode{Data: _newData, NextNodes: make([]*OneNode, willImproveLevel)}
 
 	// 将新节点插入回每层
-	for i := 0; i <= willImproveLevel; i++ {
+	for i := 0; i < willImproveLevel; i++ {
 		newNode.NextNodes[i] = updateNodes[i].NextNodes[i]
 		updateNodes[i].NextNodes[i] = newNode
 	}
@@ -142,24 +158,23 @@ func needToImprove() int { //  是否提升
 	s := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(s)
 
-	var newLevel int
 	for i := 0; i < MAXLEVEL; i++ {
 		randValue := r.Intn(100)
-		if randValue < LIFTINGPROBABILITY {
-			newLevel++
-		} else {
-			break
+		if randValue > LIFTINGPROBABILITY {
+			return i
 		}
 	}
-	return newLevel
+	return MAXLEVEL - 1
 }
 
 func main() {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	var skipListNode = NewSkipList()
-	for i := 0; i < 1000; i++ {
-		skipListNode.InsertNode(r.Intn(1000))
+	for i := 0; i < 10; i++ {
+		num := r.Intn(100)
+		// fmt.Printf("%v ", num)
+		skipListNode.InsertNode(num)
 	}
 	skipListNode.Display()
 	// fmt.Println("---------------")
