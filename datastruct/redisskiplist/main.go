@@ -356,7 +356,7 @@ func main() {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	var zskipListNode = GetNewZskipList()
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 4; i++ {
 		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("user:%v", i), MemberContent: &MemberContentStruct{UpdateTime: time.Now().Unix(), Score: r.Int63n(10000)}})
 	}
 
@@ -372,7 +372,7 @@ func main() {
 	// zskipListNode.Output()
 	// zskipListNode.DisplayRank()
 	st := time.Now().UnixNano()
-	rank := zskipListNode.FindRank("user:666")
+	rank := zskipListNode.FindRank("user:1")
 	fmt.Printf("\nrank is %v, spend %v ms\n", rank, (time.Now().UnixNano()-st)/1000000)
 
 	result := zskipListNode.FindRankFromTo(1, 10)

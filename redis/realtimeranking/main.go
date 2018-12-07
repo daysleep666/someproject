@@ -15,7 +15,7 @@ type myRedis interface {
 
 func main() {
 	r := getRedis()
-	for i := 0; i < 100000000; i++ {
+	for i := 0; i < 1000000; i++ {
 		writeMsg(r, i)
 	}
 }
@@ -30,11 +30,18 @@ func getRedis() myRedis {
 
 func writeMsg(_conn redis.Conn, _index int) {
 	key := fmt.Sprintf("user:%v", _index)
-	value := fmt.Sprintf("%v", rand.Int63n(10000))
-	reply, err := _conn.Do("set", key, value)
+	reply, err := _conn.Do("zadd", "rank", float32(rand.Int63n(10000)), key)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(_index, ":", reply.(string))
+	fmt.Println(_index, ":", reply.(int64))
+}
 
+func queryRank(_conn redis.Conn, _index string) {
+	key := fmt.Sprintf("user:%v", _index)
+	reply, err := _conn.Do("zadd", "rank", float32(rand.Int63n(10000)), key)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(_index, ":", reply.(int64))
 }

@@ -37,11 +37,11 @@ func (skipList *SkipList) InsertNode(_newData int) {
 	)
 
 	// 先找到插入的位置， 记录每层向下移动的点
-	for i := skipList.Level; i >= 0; i-- {
+	for i := skipList.Level - 1; i >= 0; i-- {
 		tmpNode = frontNode.NextNodes[i]
 		for tmpNode != nil && tmpNode.Data <= _newData { // 在本层找到符合条件的点
 			if tmpNode.Data == _newData { // 不允许重复
-				// return
+				return
 			}
 			frontNode = tmpNode
 			tmpNode = tmpNode.NextNodes[i]
@@ -51,13 +51,6 @@ func (skipList *SkipList) InsertNode(_newData int) {
 
 	// 计算需要提升几层
 	var willImproveLevel = needToImprove()
-
-	fmt.Printf("前：")
-	for _, v := range updateNodes {
-		if v != nil {
-			fmt.Printf("%v，", v.Data)
-		}
-	}
 	// 产生了新层
 	for {
 		updateNodes[skipList.Level] = skipList.HeadNode
@@ -67,16 +60,9 @@ func (skipList *SkipList) InsertNode(_newData int) {
 			skipList.Level++
 		}
 	}
-	fmt.Printf("后：")
-	for _, v := range updateNodes {
-		if v != nil {
-			fmt.Printf("%v，", v.Data)
-		}
-	}
-	fmt.Println()
+
 	// 生成新的节点
 	var newNode = &OneNode{Data: _newData, NextNodes: make([]*OneNode, willImproveLevel)}
-
 	// 将新节点插入回每层
 	for i := 0; i < willImproveLevel; i++ {
 		newNode.NextNodes[i] = updateNodes[i].NextNodes[i]
@@ -161,10 +147,10 @@ func needToImprove() int { //  是否提升
 	for i := 0; i < MAXLEVEL; i++ {
 		randValue := r.Intn(100)
 		if randValue > LIFTINGPROBABILITY {
-			return i
+			return i + 1
 		}
 	}
-	return MAXLEVEL - 1
+	return MAXLEVEL
 }
 
 func main() {
@@ -176,6 +162,9 @@ func main() {
 		// fmt.Printf("%v ", num)
 		skipListNode.InsertNode(num)
 	}
+	// skipListNode.InsertNode(3)
+	// skipListNode.InsertNode(4)
+	// skipListNode.InsertNode(3)
 	skipListNode.Display()
 	// fmt.Println("---------------")
 	// skipListNode.Delete(77)
