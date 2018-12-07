@@ -323,30 +323,11 @@ func (zln *ZskipList) Output() {
 		tmpNode = zln.Header
 		for tmpNode != nil {
 			fmt.Printf("  [member: %v, score: %v, span: %v]", tmpNode.Member.MemberName, tmpNode.GetScore(), tmpNode.Level[i].Span)
-			// fmt.Printf("  member: %v, score: %v, span: %v", tmpNode.MemberName, tmpNode.Score, tmpNode.Level[i].Span)
 			tmpNode = tmpNode.Level[i].Forward
 		}
 		fmt.Println()
 	}
 	fmt.Printf("NodeLength: %v, NodeLevel: %v\n", zln.Length, zln.Level)
-}
-
-func (zln *ZskipList) Display() {
-	var tmpNode = zln.Header.Level[0].Forward
-	for tmpNode != nil {
-		fmt.Printf("member = %v, score = %v, rank = %v \n", tmpNode.Member, tmpNode.GetScore(), tmpNode.Level[0].Span)
-		tmpNode = tmpNode.Level[0].Forward
-	}
-}
-
-func (zln *ZskipList) DisplayRank() {
-	var tmpNode = zln.Header.Level[0].Forward
-	var rank int
-	for tmpNode != nil {
-		rank++
-		fmt.Printf("[member = %v, rank = %v] ", tmpNode.Member.MemberName, rank)
-		tmpNode = tmpNode.Level[0].Forward
-	}
 }
 
 func (zln *ZskipList) DisplayBackWard() {
@@ -376,7 +357,7 @@ func main() {
 	s := rand.NewSource(time.Now().Unix())
 	r := rand.New(s)
 	var zskipListNode = GetNewZskipList()
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 10; i++ {
 		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("user:%v", i), MemberContent: &MemberContentStruct{UpdateTime: time.Now().Unix(), Score: r.Int63n(10000)}})
 	}
 
