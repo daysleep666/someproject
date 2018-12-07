@@ -245,20 +245,20 @@ func (zln *ZskipList) FindRank(_memberName string) int {
 	}
 	var (
 		tmpNode   *ZskipListNode
-		frontNode       = zln.Header
-		rank      []int = make([]int, ZSKIPLIST_MAXLEVEL+1)
+		frontNode = zln.Header
+		totalSpan int
 	)
 
 	for i := zln.Level - 1; i >= 0; i-- {
-		rank[i] = rank[i+1]
 		tmpNode = frontNode.Level[i].Forward
 		for tmpNode != nil {
 			if tmpNode.Member.Cmp(memberStruct) == -1 {
-				rank[i] += frontNode.Level[i].Span
+				totalSpan += frontNode.Level[i].Span
 				frontNode = tmpNode
 				tmpNode = tmpNode.Level[i].Forward
 			} else if tmpNode.Member.IsSame(_memberName) { // 找到了
-				return rank[i] + 1
+				totalSpan += frontNode.Level[i].Span // 不要忘了我们是在跳转前做的累加，跳转后需要加下前一个节点的span
+				return totalSpan
 			} else {
 				break
 			}
@@ -266,7 +266,6 @@ func (zln *ZskipList) FindRank(_memberName string) int {
 	}
 	return 0
 }
-
 func (zln *ZskipList) FindRankFromTo(_from, _to int) []*MemberStruct { //[from,to)
 	if _from >= _to || _from >= zln.Length || _from <= 0 {
 		return nil
