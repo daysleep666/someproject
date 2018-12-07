@@ -271,17 +271,17 @@ func (zln *ZskipList) FindRankFromTo(_from, _to int) []*MemberStruct { //[from,t
 	if _from >= _to || _from >= zln.Length {
 		return nil
 	}
-	var (
-		end       int
-		totalSpan int
-		tmpNode   = zln.Header
-		frontNode = zln.Header
-		result    = make([]*MemberStruct, end-_from)
-	)
 
+	var end = _to
 	if _to > zln.Length {
 		end = zln.Length
 	}
+	var (
+		totalSpan int
+		tmpNode   = zln.Header
+		frontNode = zln.Header
+		result    = make([]*MemberStruct, end-_from+1)
+	)
 
 	for i := zln.Level - 1; i >= 0; i-- {
 		tmpNode = frontNode.Level[i].Forward
@@ -299,12 +299,12 @@ func (zln *ZskipList) FindRankFromTo(_from, _to int) []*MemberStruct { //[from,t
 
 			var tmpFrontNode = tmpNode
 			for i := tmpSpan; i >= _from; i-- {
-				result[i] = tmpFrontNode.Member
+				result[i-_from] = tmpFrontNode.Member
 				tmpFrontNode = tmpFrontNode.BackWard
 			}
 			// 再累加后面的
-			for i := tmpSpan + 1; i < end; i++ {
-				result[i] = tmpNode.Member
+			for i := tmpSpan + 1; i <= end; i++ {
+				result[i-_from] = tmpNode.Member
 				tmpNode = tmpNode.Level[0].Forward
 			}
 			return result
@@ -373,15 +373,14 @@ func (zln *ZskipList) getRandomLevel() int {
 }
 
 func main() {
-	// s := rand.NewSource(time.Now().Unix())
-	// r := rand.New(s)
+	s := rand.NewSource(time.Now().Unix())
+	r := rand.New(s)
 	var zskipListNode = GetNewZskipList()
-	for i := 0; i < 1000; i++ {
-		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("user:%v", i), MemberContent: &MemberContentStruct{UpdateTime: time.Now().Unix(), Score: rand.Int63n(10000)}})
-		fmt.Println(fmt.Sprintf("user:%v", i))
+	for i := 0; i < 200; i++ {
+		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("user:%v", i), MemberContent: &MemberContentStruct{UpdateTime: time.Now().Unix(), Score: r.Int63n(10000)}})
 	}
 
-	// zskipListNode.Output()
+	zskipListNode.Output()
 
 	fmt.Println("--------------------------")
 	// zskipListNode.Delete("1")
@@ -389,10 +388,15 @@ func main() {
 	// zskipListNode.Delete("0")
 	// zskipListNode.Insert(&MemberStruct{MemberName: "hey", UpdateTime: time.Now().Unix()}, 88)
 	// zskipListNode.Display()
-	// zskipListNode.DisplayBackWard()
+	zskipListNode.DisplayBackWard()
 	// zskipListNode.Output()
 	// zskipListNode.DisplayRank()
 	st := time.Now().UnixNano()
-	rank := zskipListNode.FindRank("user:6666")
+	rank := zskipListNode.FindRank("user:666")
 	fmt.Printf("\nrank is %v, spend %v ms\n", rank, (time.Now().UnixNano()-st)/1000000)
+
+	result := zskipListNode.FindRankFromTo(1, 10)
+	for i, v := range result {
+		fmt.Printf("rank:%v member:%v score:%v \n", i+1, v.MemberName, v.MemberContent.Score)
+	}
 }
