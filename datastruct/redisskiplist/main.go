@@ -26,8 +26,8 @@ import (
 // } zskiplist;
 
 const (
-	ZSKIPLIST_MAXLEVEL = 32
-	ZSKIPLIST_P        = 25
+	ZSKIPLIST_MAXLEVEL = 32 // 最多32层
+	ZSKIPLIST_P        = 25 // 25%的几率提升
 )
 
 type MemberStruct struct {
@@ -268,7 +268,7 @@ func (zln *ZskipList) FindRank(_memberName string) int {
 }
 
 func (zln *ZskipList) FindRankFromTo(_from, _to int) []*MemberStruct { //[from,to)
-	if _from >= _to || _from >= zln.Length {
+	if _from >= _to || _from >= zln.Length || _from <= 0 {
 		return nil
 	}
 
