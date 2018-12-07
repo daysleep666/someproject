@@ -106,7 +106,7 @@ func getNewNode(_level int) *ZskipListNode {
 // 4.新节点到下一个节点的span = 新节点的上一个节点的span - (头节点到新节点的长度 - 头节点到新节点上一个节点的长度)
 // 5.新节点上一个节点到新节点的span = 头节点到新节点的长度 - 头节点到新节点上一个节点的长度
 
-func (zln *ZskipList) Insert(_member *MemberStruct, _newScore int) {
+func (zln *ZskipList) Insert(_member *MemberStruct, _newScore int) error {
 	var (
 		updateNode = make([]*ZskipListNode, ZSKIPLIST_MAXLEVEL)
 		tmpNode    *ZskipListNode
@@ -116,13 +116,16 @@ func (zln *ZskipList) Insert(_member *MemberStruct, _newScore int) {
 	for i := zln.Level - 1; i >= 0; i-- {
 		rank[i] = rank[i+1]
 		tmpNode = frontNode.Level[i].Forward
-		if tmpNode != nil && tmpNode.Member.Cmp(_member) == 0 { // 不允许重复的member key
-			return
-		}
-		for tmpNode != nil && (tmpNode.Score < _newScore || (tmpNode.Score == _newScore && tmpNode.Member.Cmp(_member) == -1)) {
-			rank[i] += frontNode.Level[i].Span //这里注意，记录的是跨越了多少节点到达这里
-			frontNode = tmpNode
-			tmpNode = tmpNode.Level[i].Forward
+		for tmpNode != nil {
+			if tmpNode.Member.Cmp(_member) == 0 {
+				return fmt.Errorf("%v is exist", _member.MemberName)
+			} else if tmpNode.Score < _newScore || (tmpNode.Score == _newScore && tmpNode.Member.Cmp(_member) == -1) {
+				rank[i] += frontNode.Level[i].Span //这里注意，记录的是跨越了多少节点到达这里
+				frontNode = tmpNode
+				tmpNode = tmpNode.Level[i].Forward
+			} else {
+				break
+			}
 		}
 		updateNode[i] = frontNode
 	}
@@ -161,10 +164,51 @@ func (zln *ZskipList) Insert(_member *MemberStruct, _newScore int) {
 	}
 
 	zln.Length++ // 长度+1
+	return nil
 }
 
 func (zln *ZskipList) Delete(_memberName string) {
+	score, isExist := zln.Dict[_memberName]
+	if !isExist { // 不存在 不找了
+		return
+	}
+	var (
+		tmpNode    *ZskipListNode
+		frontNode  = zln.Header
+		updateNode = make([]*ZskipListNode, ZSKIPLIST_MAXLEVEL)
+	)
 
+	for i := zln.Level - 1; i >= 0; i-- {
+		tmpNode = frontNode.Level[i].Forward
+		for tmpNode != nil {
+			if tmpNode.Score < score {
+				frontNode = tmpNode
+				tmpNode = tmpNode.Level[i].Forward
+			} else {
+				break
+			}
+		}
+		updateNode[i] = frontNode
+	}
+	// 降级
+	var length = zln.Level - 1
+	for i := length; i >= 0; i-- {
+		if updateNode[i].Level[i].Forward == nil || !updateNode[i].Level[i].Forward.Member.IsSame(_memberName) { // 说明这一层没有这个节点
+			updateNode[i].Level[i].Span--
+			continue
+		}
+		updateNode[i].Level[i].Span += updateNode[i].Level[i].Forward.Level[i].Span // 加上要删掉的那个节点到后面节点的跨度
+		if updateNode[i].Level[i].Forward.Level[i].Span != 0 {
+			updateNode[i].Level[i].Span-- // 后面还有节点，所以需要减去1
+		}
+
+		if updateNode[i].Level[i].Span == zln.Length { // 这层没有其他节点了
+			zln.Level--
+		}
+		updateNode[i].Level[i].Forward = updateNode[i].Level[i].Forward.Level[i].Forward
+	}
+	zln.Length--
+	return
 }
 
 func (zln *ZskipList) Output() {
@@ -182,7 +226,7 @@ func (zln *ZskipList) Output() {
 		}
 		fmt.Println()
 	}
-	fmt.Printf("NodeLength: %v\n", zln.Length)
+	fmt.Printf("NodeLength: %v, NodeLevel: %v\n", zln.Length, zln.Level)
 }
 
 func (zln *ZskipList) Display() {
@@ -234,10 +278,11 @@ func (zln *ZskipList) FindRank(_memberName string) uint {
 	var (
 		tmpNode   *ZskipListNode
 		frontNode        = zln.Header
-		rank      []uint = make([]uint, ZSKIPLIST_MAXLEVEL)
+		rank      []uint = make([]uint, ZSKIPLIST_MAXLEVEL+1)
 	)
 
 	for i := zln.Length - 1; i >= 0; i-- {
+		fmt.Println(rank[i], rank[i+1])
 		rank[i] = rank[i+1]
 		tmpNode = frontNode.Level[i].Forward
 		for tmpNode != nil {
@@ -259,19 +304,24 @@ func main() {
 	// s := rand.NewSource(time.Now().Unix())
 	// r := rand.New(s)
 	var zskipListNode = GetNewZskipList()
-	for i := 0; i < 3; i++ {
-		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("%v", i), UpdateTime: time.Now().Unix()}, rand.Intn(100))
-	}
+	// for i := 0; i < 4; i++ {
+	// 	zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("%v", i), UpdateTime: time.Now().Unix()}, rand.Intn(100))
+	// }
+	zskipListNode.Insert(&MemberStruct{MemberName: "2", UpdateTime: time.Now().Unix()}, 1)
+	zskipListNode.Insert(&MemberStruct{MemberName: "1", UpdateTime: time.Now().Unix()}, 1)
+	zskipListNode.Insert(&MemberStruct{MemberName: "3", UpdateTime: time.Now().Unix()}, 1)
 
 	zskipListNode.Output()
 
 	fmt.Println("--------------------------")
-
-	zskipListNode.Insert(&MemberStruct{MemberName: "hey", UpdateTime: time.Now().Unix()}, 88)
+	// zskipListNode.Delete("1")
+	// zskipListNode.Delete("2")
+	// zskipListNode.Delete("0")
+	// zskipListNode.Insert(&MemberStruct{MemberName: "hey", UpdateTime: time.Now().Unix()}, 88)
 	// zskipListNode.Display()
 	// zskipListNode.DisplayBackWard()
 	zskipListNode.Output()
 	// zskipListNode.DisplayRank()
-	rank := zskipListNode.FindRank("0")
+	rank := zskipListNode.FindRank("3")
 	fmt.Printf("\nrank is %v\n", rank)
 }
