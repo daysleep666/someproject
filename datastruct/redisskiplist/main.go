@@ -63,7 +63,7 @@ func (myMember *MemberStruct) IsSame(_otherMemberName string) bool {
 
 type ZskipListLevel struct {
 	Forward *ZskipListNode
-	Span    uint // 在每层到下一个节点跨越的长度，相对长度
+	Span    int // 在每层到下一个节点跨越的长度，相对长度
 }
 
 type ZskipListNode struct {
@@ -76,7 +76,7 @@ type ZskipListNode struct {
 type ZskipList struct {
 	Header *ZskipListNode // 头节点
 	Tail   *ZskipListNode // 尾节点
-	Length uint           // 节点数量
+	Length int            // 节点数量
 	Level  int            // 最高层数
 	Dict   map[string]int // member->score 映射
 }
@@ -110,8 +110,8 @@ func (zln *ZskipList) Insert(_member *MemberStruct, _newScore int) error {
 	var (
 		updateNode = make([]*ZskipListNode, ZSKIPLIST_MAXLEVEL)
 		tmpNode    *ZskipListNode
-		frontNode         = zln.Header
-		rank       []uint = make([]uint, ZSKIPLIST_MAXLEVEL+1)
+		frontNode        = zln.Header
+		rank       []int = make([]int, ZSKIPLIST_MAXLEVEL+1)
 	)
 	for i := zln.Level - 1; i >= 0; i-- {
 		rank[i] = rank[i+1]
@@ -270,19 +270,18 @@ func (zln *ZskipList) getRandomLevel() int {
 	return ZSKIPLIST_MAXLEVEL
 }
 
-func (zln *ZskipList) FindRank(_memberName string) uint {
+func (zln *ZskipList) FindRank(_memberName string) int {
 	score, isExist := zln.Dict[_memberName]
 	if !isExist { // 不存在 不找了
 		return 0
 	}
 	var (
 		tmpNode   *ZskipListNode
-		frontNode        = zln.Header
-		rank      []uint = make([]uint, ZSKIPLIST_MAXLEVEL+1)
+		frontNode       = zln.Header
+		rank      []int = make([]int, ZSKIPLIST_MAXLEVEL+1)
 	)
 
-	for i := zln.Length - 1; i >= 0; i-- {
-		fmt.Println(rank[i], rank[i+1])
+	for i := int(zln.Length - 1); i >= 0; i-- {
 		rank[i] = rank[i+1]
 		tmpNode = frontNode.Level[i].Forward
 		for tmpNode != nil {
