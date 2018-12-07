@@ -267,6 +267,52 @@ func (zln *ZskipList) FindRank(_memberName string) int {
 	return 0
 }
 
+func (zln *ZskipList) FindRankFromTo(_from, _to int) []*MemberStruct { //[from,to)
+	if _from >= _to || _from >= zln.Length {
+		return nil
+	}
+	var (
+		end       int
+		totalSpan int
+		tmpNode   = zln.Header
+		frontNode = zln.Header
+		result    = make([]*MemberStruct, end-_from)
+	)
+
+	if _to > zln.Length {
+		end = zln.Length
+	}
+
+	for i := zln.Level - 1; i >= 0; i-- {
+		tmpNode = frontNode.Level[i].Forward
+		for tmpNode != nil {
+			var tmpSpan = totalSpan + frontNode.Level[i].Span // 当前节点的rank
+			if tmpSpan < _from {                              // 继续累加
+				totalSpan = tmpSpan
+				tmpNode = tmpNode.Level[i].Forward
+				continue
+			} else if tmpSpan > end { // 超出去了 直接跳出去
+				break
+			}
+			// 这个是想找的那个
+			// 先累加前面的
+
+			var tmpFrontNode = tmpNode
+			for i := tmpSpan; i >= _from; i-- {
+				result[i] = tmpFrontNode.Member
+				tmpFrontNode = tmpFrontNode.BackWard
+			}
+			// 再累加后面的
+			for i := tmpSpan + 1; i < end; i++ {
+				result[i] = tmpNode.Member
+				tmpNode = tmpNode.Level[0].Forward
+			}
+			return result
+		}
+	}
+	return nil
+}
+
 func (zln *ZskipList) Output() {
 	var (
 		tmpNode *ZskipListNode
@@ -330,7 +376,7 @@ func main() {
 	// s := rand.NewSource(time.Now().Unix())
 	// r := rand.New(s)
 	var zskipListNode = GetNewZskipList()
-	for i := 0; i < 10000000; i++ {
+	for i := 0; i < 1000; i++ {
 		zskipListNode.Insert(&MemberStruct{MemberName: fmt.Sprintf("user:%v", i), MemberContent: &MemberContentStruct{UpdateTime: time.Now().Unix(), Score: rand.Int63n(10000)}})
 		fmt.Println(fmt.Sprintf("user:%v", i))
 	}
