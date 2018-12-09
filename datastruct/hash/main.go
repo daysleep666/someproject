@@ -129,7 +129,7 @@ func (m *myMap) GetValue(_key string) (interface{}, bool) {
 func (m *myMap) SetVaue(_key string, _value interface{}) {
 	hash, isExist := m.reHash(_key)
 	if hash == -1 {
-		fmt.Printf("err:堆满了")
+		fmt.Printf("err:满了")
 		return
 	}
 	m.HashTable[hash] = &keyValue{Key: _key, Value: _value}
