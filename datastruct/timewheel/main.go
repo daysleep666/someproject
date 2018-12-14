@@ -121,22 +121,31 @@ func (tw *timeWheel) setTick() {
 	loopExcution(tw.Round, node)
 }
 
+func (tw *timeWheel) Run() {
+	startTime := time.Now().Unix()
+	for {
+		if startTime < time.Now().Unix() {
+			tw.setTick()
+			startTime++
+		}
+	}
+}
+
 func main() {
 	tw := NewTimeWheel()
 	tw.AddTask(func() { fmt.Println("task1") }, 1)
 	tw.AddTask(func() { fmt.Println("task2") }, 4)
 	tw.AddTask(func() { fmt.Println("task3") }, 7)
 	tw.AddTask(func() { fmt.Println("task4") }, 20)
-	for {
-		tw.setTick()
-		time.Sleep(time.Second)
-		if timeCount == 11 {
-			break
-		}
-	}
+
+	tw.Run()
+
 	for _, v := range tw.Nodes {
 		if v != nil {
 			DisplayNode(v)
 		}
 	}
+
+	var ch = make(chan int)
+	<-ch
 }
