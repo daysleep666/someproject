@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // 哈希函数： hash(key) = hashA + hashB
 // 解决冲突：拉链法
 // 扩容：旧桶慢慢转移到新桶
@@ -37,10 +41,14 @@ type myMap struct {
 }
 
 func newBucket() *bucket {
-	return &bucket{
-		tophash:        [8]*topHash{},
+	b := &bucket{
+		tophash:        [bucketCnt]*topHash{},
 		overFlowBucket: nil,
 	}
+	for i, _ := range b.tophash {
+		b.tophash[i] = &topHash{}
+	}
+	return b
 }
 
 func NewMap(_maxSize int) *myMap {
@@ -48,11 +56,19 @@ func NewMap(_maxSize int) *myMap {
 	for overLoadFactor(_maxSize, B) {
 		B++
 	}
-	return &myMap{
+	m := &myMap{
 		buckets:    make([]*bucket, 1<<B),
 		oldBuckets: nil,
 		B:          B,
 	}
+	for i, _ := range m.buckets {
+		m.buckets[i] = newBucket()
+	}
+
+	for _, v := range m.buckets {
+		fmt.Println(v)
+	}
+	return m
 }
 
 func (m *myMap) hash(_key string) (high int, low int) {
@@ -100,7 +116,14 @@ func (m *myMap) evacuated(_bucket *bucket) bool {
 
 // 迁移一个桶
 func (m *myMap) evacuate(_bucket *bucket) {
+	// tmpBucket := _bucket
+	// for tmpBucket != nil {
+	// 	for _, v := range tmpBucket.tophash {
+	// 		key := v.kv.key
 
+	// 	}
+	// 	tmpBucket = tmpBucket.overFlowBucket
+	// }
 }
 
 // 扩容
@@ -154,9 +177,10 @@ func (m *myMap) SetValue(_key string, _value string) {
 	// 总体来说就是先在桶里找存在不存在这个key，
 	// 如果存在就更新值，如果不存在就放入桶的空余位置
 	// 或者新增一个桶
+
 	for bucket != nil {
 		for _, v := range bucket.tophash {
-			if v.topHash == high && v.kv.key == _key {
+			if v.kv != nil && v.topHash == high && v.kv.key == _key {
 				v.kv.value = _value
 				return
 			}
@@ -166,7 +190,6 @@ func (m *myMap) SetValue(_key string, _value string) {
 		}
 		bucket = bucket.overFlowBucket
 	}
-
 	var isFull bool = true
 	// 在桶中没有这个值，需要新增了
 	for i := 0; i < bucketCnt; i++ {
@@ -193,4 +216,10 @@ func (m *myMap) SetValue(_key string, _value string) {
 }
 
 func main() {
+	var m = NewMap(10)
+	for i := 0; i < 2; i++ {
+		key := fmt.Sprintf("%v", i)
+		value := fmt.Sprintf("%v", i)
+		m.SetValue(key, value)
+	}
 }
