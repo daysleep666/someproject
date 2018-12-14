@@ -103,8 +103,9 @@ func NewTimeWheel() *timeWheel {
 func (tw *timeWheel) AddTask(_newTask func(), afterTime int) {
 	tw.TaskCount++
 	willInSlot := (afterTime + tw.CurSlot) % maxSlot
-	round := tw.Round + afterTime/maxSlot
+	round := tw.Round + (afterTime+tw.CurSlot)/maxSlot
 	tw.Nodes[willInSlot] = AddNode(tw.Nodes[willInSlot], tw.TaskCount, _newTask, round)
+	fmt.Printf("slot=%v,rount=%v\n", willInSlot, round)
 }
 
 var timeCount int
@@ -137,6 +138,11 @@ func main() {
 	tw.AddTask(func() { fmt.Println("task2") }, 4)
 	tw.AddTask(func() { fmt.Println("task3") }, 7)
 	tw.AddTask(func() { fmt.Println("task4") }, 20)
+
+	go func() {
+		time.Sleep(time.Second * 5)
+		tw.AddTask(func() { fmt.Println("task5") }, 10)
+	}()
 
 	tw.Run()
 
