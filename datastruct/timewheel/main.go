@@ -74,7 +74,7 @@ func DeleteNode(_oneNode *OneNode, _id int) *OneNode {
 	return tmpNode
 }
 
-func loopExcution(_curRound int, _oneNode *OneNode) *OneNode {
+func (tw *timeWheel) loopExcution(_curRound int, _oneNode *OneNode) *OneNode {
 	if _oneNode == nil {
 		return nil
 	}
@@ -85,11 +85,11 @@ func loopExcution(_curRound int, _oneNode *OneNode) *OneNode {
 		_oneNode.Next.Previous = _oneNode
 	}
 	if _oneNode.Round == _curRound && _oneNode.Task != nil {
-
+		tw.TaskCount--
 		_oneNode.Task() // 执行了的任务 干掉它
 		return _oneNode.Next
 	}
-	_oneNode.Next = loopExcution(_curRound, _oneNode.Next)
+	_oneNode.Next = tw.loopExcution(_curRound, _oneNode.Next)
 	return _oneNode
 }
 
@@ -125,18 +125,14 @@ func (tw *timeWheel) AddTask(_newTask func(), afterTime int) {
 	tw.Nodes[willInSlot] = AddNode(tw.Nodes[willInSlot], tw.TaskCount, _newTask, round)
 }
 
-var timeCount int
-
 func (tw *timeWheel) setTick() {
-	fmt.Println(timeCount)
-	timeCount++
 	tw.CurSlot++
 	if tw.CurSlot == tw.MaxSlot {
 		tw.CurSlot = 0
 		tw.Round++
 	}
 	node := tw.Nodes[tw.CurSlot]
-	loopExcution(tw.Round, node)
+	tw.loopExcution(tw.Round, node)
 }
 
 func (tw *timeWheel) Run() {
@@ -151,14 +147,14 @@ func (tw *timeWheel) Run() {
 
 func main() {
 	tw := NewTimeWheel(6)
-	tw.AddTask(func() { fmt.Println("task1") }, 1)
-	tw.AddTask(func() { fmt.Println("task2") }, 7)
-	tw.AddTask(func() { fmt.Println("task3") }, 13)
-	tw.AddTask(func() { fmt.Println("task4") }, 20)
+	tw.AddTask(func() { fmt.Printf("task1,curtaskcount=%v\n", tw.TaskCount) }, 1)
+	tw.AddTask(func() { fmt.Printf("task2,curtaskcount=%v\n", tw.TaskCount) }, 7)
+	tw.AddTask(func() { fmt.Printf("task3,curtaskcount=%v\n", tw.TaskCount) }, 13)
+	tw.AddTask(func() { fmt.Printf("task4,curtaskcount=%v\n", tw.TaskCount) }, 20)
 
 	go func() {
 		time.Sleep(time.Second * 5)
-		tw.AddTask(func() { fmt.Println("task5") }, 10)
+		tw.AddTask(func() { fmt.Printf("task5,curtaskcount=%v\n", tw.TaskCount) }, 10)
 	}()
 
 	tw.Run()
