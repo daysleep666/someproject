@@ -6,10 +6,11 @@ import (
 
 // 层级时间轮
 
+// 一个槽节点
 type SlotNode struct {
 	Key     interface{}
 	Task    func()
-	RunTime int64
+	RunTime int
 	Next    *SlotNode
 }
 
@@ -24,7 +25,7 @@ func (sn *SlotNode) Run() {
 	}
 }
 
-func (sn *SlotNode) AddTask(_key interface{}, _newTask func(), _runTime int64) {
+func (sn *SlotNode) AddTask(_key interface{}, _newTask func(), _runTime int) {
 	var tmpNode = sn
 	for tmpNode.Next != nil {
 		if tmpNode.Key == _key {
@@ -50,74 +51,79 @@ func (sn *SlotNode) RemoveTask(_key interface{}) {
 	}
 }
 
-const MaxSlot = 6 // 总槽数
+// 一个时间轮
 type TimeWheel struct {
-	RunTime   int         // 执行时间
 	CurSlot   int         // 当前槽
+	MaxSlot   int         // 总槽数
+	OneStep   int         // 步长
 	SlotArray []*SlotNode // 槽位
 }
 
-func NewTimeWheel() *TimeWheel {
-	tw := &TimeWheel{SlotArray: make([]*SlotNode, MaxSlot)}
+func NewTimeWheel(_maxSlot int, _oneStep int) *TimeWheel {
+	tw := &TimeWheel{SlotArray: make([]*SlotNode, _maxSlot), MaxSlot: _maxSlot, OneStep: _oneStep}
 	for i, _ := range tw.SlotArray {
 		tw.SlotArray[i] = NewSlotNode()
 	}
 	return tw
 }
 
+func (tw *TimeWheel) HasRound() bool {
+	return tw.CurSlot == tw.MaxSlot
+}
+
+// 一堆时间轮
 type LevelTimeWheel struct {
+	MaxSlot        int          // 总槽数
+	TotalTick      int          // 总tick
 	TimeWheelArray []*TimeWheel // 所有的时间轮
 }
 
-func InitLevelTimeWheel() *LevelTimeWheel {
-	return &LevelTimeWheel{[]*TimeWheel{}}
+func InitLevelTimeWheel(_maxSlot int) *LevelTimeWheel {
+	return &LevelTimeWheel{TimeWheelArray: []*TimeWheel{}, MaxSlot: _maxSlot}
 }
-
-var count int64
 
 func (ltw *LevelTimeWheel) Tick() {
 	for {
-		if count >= 40 {
+		if ltw.TotalTick >= 15 {
 			return
 		}
 
-		var hasRoundOne bool // 是否已经绕完了一圈
 		for level, tw := range ltw.TimeWheelArray {
 			if level == 0 { // 第一层的节点
 				for slot, slotNode := range tw.SlotArray {
-					fmt.Printf("%v:", count)
+					tw.CurSlot++
+					fmt.Printf("%v:", ltw.TotalTick)
 					if slotNode != nil {
 						slotNode.Run()
 						tw.SlotArray[slot] = NewSlotNode()
 					}
-					tw.CurSlot++
 
-					if tw.CurSlot == MaxSlot { //绕完一圈了
+					if tw.HasRound() { //绕完一圈了
 						tw.CurSlot = 0
-						hasRoundOne = true
 					}
+
+					ltw.TotalTick++
 
 					{ // debug
 						fmt.Println()
-						count++
 					}
 				}
 			} else {
-				if hasRoundOne {
+				// 判断是否该走一个tick
+				if ltw.TotalTick%tw.OneStep == 0 {
 					tw.CurSlot++
 
 					// 判断是否绕完一圈了
-					if tw.CurSlot == MaxSlot { //绕完一圈了
+					if tw.HasRound() {
 						tw.CurSlot = 0
-						hasRoundOne = true
-					} else {
-						hasRoundOne = false
 					}
+
 					// 看有没有任务，如果有,执行任务降级
 					tmpNode := tw.SlotArray[tw.CurSlot].Next
 					for tmpNode != nil {
-						ltw.AddTask(tmpNode.Key, tmpNode.Task, computeFallRunTime(int64(level)-1, tmpNode.RunTime))
-						// fmt.Printf("key=%v,runtime=%v,fallruntime=%v\n", tmpNode.Key, tmpNode.RunTime, computeFallRunTime(int64(level)-1, tmpNode.RunTime))
+						// 降级后的时间等于当前执行时间-已经过了的时间
+						ltw.AddTask(tmpNode.Key, tmpNode.Task, tmpNode.RunTime-tw.CurSlot*tw.OneStep)
+						// fmt.Printf("key=%v,runtime=%v,fallruntime=%v\n", tmpNode.Key, tmpNode.RunTime, computeFallRunTime(int(level)-1, tmpNode.RunTime))
 						tmpNode = tmpNode.Next
 					}
 					tw.SlotArray[tw.CurSlot] = NewSlotNode()
@@ -127,74 +133,45 @@ func (ltw *LevelTimeWheel) Tick() {
 	}
 }
 
-func (ltw *LevelTimeWheel) AddTask(_key interface{}, _newTask func(), _runTime int64) {
-	if _runTime == 0 {
-		return
+func (ltw *LevelTimeWheel) AddTask(_key interface{}, _newTask func(), _runTime int) {
+	// if _runTime == 0 {
+	// 	return
+	// }
+	twLevel := ltw.computeLevel(_runTime)
+
+	var lastStep int = 1
+	for i := len(ltw.TimeWheelArray); i <= twLevel; i++ {
+		if i != 0 {
+			lastStep = ltw.TimeWheelArray[i-1].OneStep * ltw.MaxSlot
+		}
+		newTW := NewTimeWheel(ltw.MaxSlot, lastStep)
+		ltw.TimeWheelArray = append(ltw.TimeWheelArray, newTW)
 	}
 
-	twLevel := computeLevel(_runTime)
-
-	for int64(len(ltw.TimeWheelArray)) <= twLevel {
-		ltw.TimeWheelArray = append(ltw.TimeWheelArray, NewTimeWheel())
-	}
-
-	twSlot := computeSlot(twLevel, _runTime)
+	twSlot := (_runTime / lastStep) % ltw.MaxSlot
+	fmt.Printf("twLevel=%v,twslot=%v\n", twLevel, twSlot)
 	ltw.TimeWheelArray[twLevel].SlotArray[twSlot].AddTask(_key, _newTask, _runTime)
 }
 
-// 假设一个时间轮有六个槽，一个槽1秒。
-// 向时间轮里插入行为，当数据大于6秒时，仿照第一个时间轮动态建立第二个时间轮，
-// 第二个时间轮有6*6秒，如果执行时间v在36秒内，则可以插入到(v%6)个槽中。
-// 第一个时间轮每绕一圈，第二个时间轮走一下，当第二个时间轮走到有行为的槽时，
-// 降级到第一个时间轮的第(v/6)槽中，第一个时间轮走到该槽后执行该行为。
-
-func main() {
-	ltw := InitLevelTimeWheel()
-	// for i:=0;i<100;i++ {
-
-	// }
-	ltw.AddTask(1, func() { fmt.Printf("task1") }, 2)
-	ltw.AddTask(2, func() { fmt.Printf("task2") }, 10)
-	ltw.AddTask(3, func() { fmt.Printf("task3") }, 37)
-	ltw.AddTask(4, func() { fmt.Printf("task4") }, 40)
-	ltw.Tick()
-}
-
-func computeLevel(_val int64) int64 {
+func (ltw *LevelTimeWheel) computeLevel(_val int) int {
 	var (
-		count int64
-		num   int64 = MaxSlot
+		count int
+		num   int = ltw.MaxSlot
 	)
-	for num < _val {
+	for num <= _val {
 		count++
-		num *= MaxSlot
+		num *= ltw.MaxSlot
 	}
 	return count
 }
 
-func computeSlot(_level, _val int64) int64 {
-	if _level == 0 {
-		return _val % MaxSlot
+func main() {
+	ltw := InitLevelTimeWheel(6)
+	for i := 0; i < 9; i++ {
+		ltw.AddTask(i, func() { fmt.Printf("task") }, i)
 	}
-	var tmp = int64(1)
-	for i := int64(0); i < _level; i++ {
-		tmp *= 6
-	}
-	tmp = _val - tmp
-
-	var slot = int64(1)
-	for tmp > MaxSlot {
-		slot++
-		tmp /= MaxSlot
-	}
-	return slot
-}
-
-func computeFallRunTime(_fallLevel, _runTime int64) int64 {
-	var tmp = int64(1)
-	for i := int64(0); i <= _fallLevel; i++ {
-		tmp *= 6
-	}
-	tmp = _runTime - tmp
-	return tmp
+	// ltw.AddTask(2, func() { fmt.Printf("task2") }, 1)
+	// ltw.AddTask(3, func() { fmt.Printf("task3") }, 37)
+	// ltw.AddTask(4, func() { fmt.Printf("task4") }, 40)
+	ltw.Tick()
 }
