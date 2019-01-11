@@ -9,24 +9,24 @@ import (
 
 type timeWheel struct {
 	MaxSlot   int
-	Nodes     []*OneNode
+	Nodes     []*SlotNode
 	CurSlot   int
 	Round     int
 	TaskCount int
 }
 
 // 双向链表
-type OneNode struct {
+type SlotNode struct {
 	Id       int
 	Task     func()
 	Round    int
-	Previous *OneNode
-	Next     *OneNode
+	Previous *SlotNode
+	Next     *SlotNode
 }
 
-func AddNode(_oneNode *OneNode, _id int, _newTask func(), _round int) *OneNode {
-	if _oneNode == nil {
-		return &OneNode{
+func AddNode(_slotNode *SlotNode, _id int, _newTask func(), _round int) *SlotNode {
+	if _slotNode == nil {
+		return &SlotNode{
 			Id:       _id,
 			Task:     _newTask,
 			Round:    _round,
@@ -34,9 +34,9 @@ func AddNode(_oneNode *OneNode, _id int, _newTask func(), _round int) *OneNode {
 			Next:     nil,
 		}
 	}
-	var tmpNode = _oneNode
+	var tmpNode = _slotNode
 	if tmpNode.Round > _round {
-		newNode := &OneNode{
+		newNode := &SlotNode{
 			Id:       _id,
 			Task:     _newTask,
 			Round:    _round,
@@ -55,11 +55,11 @@ func AddNode(_oneNode *OneNode, _id int, _newTask func(), _round int) *OneNode {
 	return tmpNode
 }
 
-func DeleteNode(_oneNode *OneNode, _id int) *OneNode {
-	if _oneNode == nil {
+func DeleteNode(_slotNode *SlotNode, _id int) *SlotNode {
+	if _slotNode == nil {
 		return nil
 	}
-	var tmpNode = _oneNode
+	var tmpNode = _slotNode
 	for tmpNode.Id == _id {
 		tmpNode = tmpNode.Next
 		if tmpNode == nil {
@@ -74,45 +74,45 @@ func DeleteNode(_oneNode *OneNode, _id int) *OneNode {
 	return tmpNode
 }
 
-func (tw *timeWheel) loopExcution(_curRound int, _oneNode *OneNode) *OneNode {
-	if _oneNode == nil {
+func (tw *timeWheel) loopExcution(_curRound int, _slotNode *SlotNode) *SlotNode {
+	if _slotNode == nil {
 		return nil
 	}
-	if _oneNode.Round > _curRound {
-		return _oneNode
+	if _slotNode.Round > _curRound {
+		return _slotNode
 	}
-	if _oneNode.Next != nil {
-		_oneNode.Next.Previous = _oneNode
+	if _slotNode.Next != nil {
+		_slotNode.Next.Previous = _slotNode
 	}
-	if _oneNode.Round == _curRound && _oneNode.Task != nil {
+	if _slotNode.Round == _curRound && _slotNode.Task != nil {
 		tw.TaskCount--
-		_oneNode.Task() // 执行了的任务 干掉它
-		return _oneNode.Next
+		_slotNode.Task() // 执行了的任务 干掉它
+		return _slotNode.Next
 	}
-	_oneNode.Next = tw.loopExcution(_curRound, _oneNode.Next)
-	return _oneNode
+	_slotNode.Next = tw.loopExcution(_curRound, _slotNode.Next)
+	return _slotNode
 }
 
-func DisplayNode(_oneNode *OneNode) {
-	if _oneNode == nil {
+func DisplayNode(_slotNode *SlotNode) {
+	if _slotNode == nil {
 		return
 	}
-	fmt.Printf("cur=%v", _oneNode.Task)
-	if _oneNode.Previous != nil {
-		fmt.Printf(", previous=%v", _oneNode.Previous.Task)
+	fmt.Printf("cur=%v", _slotNode.Task)
+	if _slotNode.Previous != nil {
+		fmt.Printf(", previous=%v", _slotNode.Previous.Task)
 	}
-	if _oneNode.Next != nil {
-		fmt.Printf(", next=%v", _oneNode.Next.Task)
+	if _slotNode.Next != nil {
+		fmt.Printf(", next=%v", _slotNode.Next.Task)
 	}
 	fmt.Println()
-	DisplayNode(_oneNode.Next)
+	DisplayNode(_slotNode.Next)
 }
 
 func NewTimeWheel(_maxSlot int) *timeWheel {
 	timeWheel := &timeWheel{MaxSlot: _maxSlot}
-	timeWheel.Nodes = make([]*OneNode, _maxSlot)
+	timeWheel.Nodes = make([]*SlotNode, _maxSlot)
 	for i, _ := range timeWheel.Nodes {
-		timeWheel.Nodes[i] = new(OneNode)
+		timeWheel.Nodes[i] = new(SlotNode)
 	}
 	return timeWheel
 }
@@ -136,9 +136,9 @@ func (tw *timeWheel) setTick() {
 }
 
 func (tw *timeWheel) Run() {
-	startTime := time.Now().Unix()
+	startTime := time.Now().UnixNano()
 	for {
-		if startTime < time.Now().Unix() {
+		if startTime < time.Now().UnixNano() {
 			tw.setTick()
 			startTime++
 		}
@@ -151,11 +151,6 @@ func main() {
 	tw.AddTask(func() { fmt.Printf("task2,curtaskcount=%v\n", tw.TaskCount) }, 7)
 	tw.AddTask(func() { fmt.Printf("task3,curtaskcount=%v\n", tw.TaskCount) }, 13)
 	tw.AddTask(func() { fmt.Printf("task4,curtaskcount=%v\n", tw.TaskCount) }, 20)
-
-	go func() {
-		time.Sleep(time.Second * 5)
-		tw.AddTask(func() { fmt.Printf("task5,curtaskcount=%v\n", tw.TaskCount) }, 10)
-	}()
 
 	tw.Run()
 
