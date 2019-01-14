@@ -47,10 +47,12 @@ func (bt *BackTask) Run() {
 	for {
 		<-ticker.C
 		func() {
-			if bt.Head != nil {
+			for bt.Head != nil {
 				if bt.Head.ExecuteTime < time.Now().Unix() {
 					go bt.Head.Task()
 					bt.Head = Pop(bt.Head)
+				} else {
+					break
 				}
 			}
 		}()
@@ -60,7 +62,10 @@ func (bt *BackTask) Run() {
 func main() {
 	var bt = new(BackTask)
 	bt.Insert("a", func() { fmt.Println("tasl1", time.Now().Unix()) }, 1)
-	bt.Insert("a", func() { fmt.Println("tasl2", time.Now().Unix()) }, 4)
-	bt.Insert("a", func() { fmt.Println("tasl3", time.Now().Unix()) }, 10)
+	bt.Insert("b", func() { fmt.Println("tasl6", time.Now().Unix()) }, 1)
+	bt.Insert("c", func() { fmt.Println("tasl7", time.Now().Unix()) }, 1)
+	bt.Insert("d", func() { fmt.Println("tasl8", time.Now().Unix()) }, 1)
+	bt.Insert("e", func() { fmt.Println("tasl2", time.Now().Unix()) }, 4)
+	bt.Insert("f", func() { fmt.Println("tasl3", time.Now().Unix()) }, 10)
 	bt.Run()
 }
