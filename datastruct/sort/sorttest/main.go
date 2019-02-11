@@ -5,17 +5,13 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/daysleep666/someproject/datastruct/sort/bubblesort"
-	"github.com/daysleep666/someproject/datastruct/sort/insertionsort"
 	"github.com/daysleep666/someproject/datastruct/sort/mergesort"
 )
-
-// 随机生成10000个数组每组200个数据
 
 var bigArr [][]int64
 
 var (
-	big   = 100
+	big   = 1000
 	small = 5000
 )
 
@@ -35,23 +31,23 @@ func init() {
 func main() {
 	var st int64
 
-	st = getCurMS()
-	for _, v := range bigArr {
-		bubblesort.BubbleSort(v)
-	}
-	fmt.Printf("冒泡排序:%vms\n", getCurMS()-st) // 162ms
+	// st = getCurMS()
+	// for _, v := range bigArr {
+	// 	bubblesort.BubbleSort(v)
+	// }
+	// fmt.Printf("冒泡排序:%vms\n", getCurMS()-st) //
 	//------------------------------------------------------
-	st = getCurMS()
-	for _, v := range bigArr {
-		insertionsort.InsertionSort(v)
-	}
-	fmt.Printf("插入排序:%vms\n", getCurMS()-st) // 18ms
-	//------------------------------------------------------
+	// st = getCurMS()
+	// for _, v := range bigArr {
+	// 	insertionsort.InsertionSort(v)
+	// }
+	// fmt.Printf("插入排序:%vms\n", getCurMS()-st) //
+	// //------------------------------------------------------
 	st = getCurMS()
 	for _, v := range bigArr {
 		mergesort.MergeSort(v)
 	}
-	fmt.Printf("归并排序:%vms\n", getCurMS()-st) // 8ms
+	fmt.Printf("归并排序:%vms\n", getCurMS()-st) //
 	//------------------------------------------------------
 
 }
