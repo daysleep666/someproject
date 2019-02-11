@@ -1,7 +1,7 @@
 package bubblesort
 
 // 从小到大
-func BubbleSort(_arr []int64) []int64 {
+func BubbleSort(_arr []int64) {
 	length := len(_arr)
 	for i := 0; i < length-1; i++ {
 		noMove := false
@@ -13,10 +13,9 @@ func BubbleSort(_arr []int64) []int64 {
 		}
 		if !noMove {
 			// 这次排序没有移动，说明已经是正确的顺序了
-			return _arr
+			return
 		}
 	}
-	return _arr
 }
 
 // 最好时间复杂度O(n) 最坏时间复杂度是O(n^2)

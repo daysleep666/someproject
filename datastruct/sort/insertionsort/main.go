@@ -1,13 +1,13 @@
 package insertionsort
 
 // 插入排序 由小到大
-func InsertionSort(_arr []int64) []int64 {
+func InsertionSort(_arr []int64) {
 	length := len(_arr)
 	for i := 0; i < length-1; i++ {
 		k := i + 1
 		tmp := _arr[k]
 		for ; k > 0; k-- {
-			if _arr[k-1] > _arr[k] {
+			if _arr[k-1] > tmp {
 				_arr[k] = _arr[k-1]
 			} else {
 				break
@@ -15,7 +15,6 @@ func InsertionSort(_arr []int64) []int64 {
 		}
 		_arr[k] = tmp
 	}
-	return _arr
 }
 
 // 时间复杂度
