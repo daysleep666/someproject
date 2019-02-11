@@ -1,13 +1,11 @@
-package main
-
-import "fmt"
+package bubblesort
 
 // 从小到大
-func BubbleSort(_arr []int) []int {
+func BubbleSort(_arr []int64) []int64 {
 	length := len(_arr)
 	for i := 0; i < length-1; i++ {
 		noMove := false
-		for j := 1; j < length; j++ {
+		for j := 1; j < length-i; j++ {
 			if _arr[j-1] > _arr[j] {
 				_arr[j-1], _arr[j] = _arr[j], _arr[j-1]
 				noMove = true
@@ -19,11 +17,6 @@ func BubbleSort(_arr []int) []int {
 		}
 	}
 	return _arr
-}
-
-func main() {
-	result := BubbleSort([]int{3, 2, 4, 1, 5})
-	fmt.Println(result)
 }
 
 // 最好时间复杂度O(n) 最坏时间复杂度是O(n^2)
