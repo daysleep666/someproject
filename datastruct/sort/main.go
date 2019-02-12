@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/daysleep666/someproject/datastruct/sort/quicksort"
+	"github.com/daysleep666/someproject/datastruct/sort/distributionsort"
 )
 
-var arr []int64 = []int64{3, 2, 4, 1, 5, 8, 6, 0}
+var arr []int64 = []int64{33, 211, 42, 12, 55, 71230, 453216, 21310}
 
 func main() {
-	// quicksort.QuickSort(arr)
-	quicksort.Test()
+	distributionsort.TestRun()
 	// fmt.Println(arr)
 }
