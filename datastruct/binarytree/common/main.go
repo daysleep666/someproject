@@ -69,14 +69,14 @@ func Order层序(_node *BinaryTree) { // 层序
 			continue
 		}
 		fmt.Printf("%v  ", tmpNode.Data)
-		if tmpNode.LeftNode != nil {
-			q.Push(tmpNode.LeftNode)
-			nextLast = tmpNode.LeftNode
-		}
-		if tmpNode.RightNode != nil {
-			q.Push(tmpNode.RightNode)
-			nextLast = tmpNode.RightNode
-		}
+		// if tmpNode.LeftNode != nil {
+		// 	q.Push(tmpNode.LeftNode)
+		// 	nextLast = tmpNode.LeftNode
+		// }
+		// if tmpNode.RightNode != nil {
+		// }
+		q.Push(tmpNode.LeftNode, tmpNode.RightNode)
+		nextLast = tmpNode.RightNode
 		if curLast == tmpNode {
 			fmt.Println()
 			curLast = nextLast
