@@ -59,6 +59,8 @@ func Order层序(_node *BinaryTree) { // 层序
 	}
 	q := queuesturct.NewQueue()
 	q.Push(_node)
+	curLast := _node
+	nextLast := _node
 	for q.Length() > 0 {
 		value, _ := q.Pop()
 		tmpNode := value.(*BinaryTree)
@@ -67,7 +69,18 @@ func Order层序(_node *BinaryTree) { // 层序
 			continue
 		}
 		fmt.Printf("%v  ", tmpNode.Data)
-		q.Push(tmpNode.LeftNode, tmpNode.RightNode)
+		if tmpNode.LeftNode != nil {
+			q.Push(tmpNode.LeftNode)
+			nextLast = tmpNode.LeftNode
+		}
+		if tmpNode.RightNode != nil {
+			q.Push(tmpNode.RightNode)
+			nextLast = tmpNode.RightNode
+		}
+		if curLast == tmpNode {
+			fmt.Println()
+			curLast = nextLast
+		}
 	}
 
 }
