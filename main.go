@@ -2,16 +2,24 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/daysleep666/someproject/datastruct/queue/queuesturct"
 )
 
 func main() {
-	q := queuesturct.NewQueue()
-	for i := 0; i < 10; i++ {
-		q.Push(i)
-	}
-	for v, err := q.Pop(); err == nil; v, err = q.Pop() {
-		fmt.Println(v.(int))
-	}
+	a := testSlice()
+	fmt.Printf("切片函数外%p\n", &a)
+
+	b := testArray()
+	fmt.Printf("数组函数外%p\n", &b)
+}
+
+func testSlice() []int64 {
+	var a = make([]int64, 0)
+	fmt.Printf("切片函数里%p\n", &a)
+	return a
+}
+
+func testArray() [3]int64 {
+	var a [3]int64
+	fmt.Printf("数组函数里%p\n", &a)
+	return a
 }
