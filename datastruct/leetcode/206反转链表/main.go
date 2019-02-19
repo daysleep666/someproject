@@ -42,6 +42,18 @@ func reverseList(_oneNode *singlelist.OneNode) *singlelist.OneNode {
 	return preNode
 }
 
+func reverseList整理(_oneNode *singlelist.OneNode) *singlelist.OneNode {
+	var (
+		curNode = _oneNode
+		preNode *singlelist.OneNode
+	)
+	for curNode != nil {
+		curNode.Next, preNode, curNode = preNode, curNode, curNode.Next
+	}
+
+	return preNode
+}
+
 func reverseListDIGUI(_oneNode, _preNode *singlelist.OneNode) *singlelist.OneNode {
 	if _oneNode == nil {
 		return nil
@@ -62,6 +74,7 @@ func main() {
 	}
 	headNode = reverseList(headNode)
 	headNode = reverseListDIGUI(headNode, nil)
+	headNode = reverseList整理(headNode)
 	singlelist.DisplayNode(headNode)
 
 }
