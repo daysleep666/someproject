@@ -4,10 +4,14 @@ import "github.com/daysleep666/someproject/datastruct/graph/graph"
 
 func main() {
 	dg := graph.Init()
-	dg.Add("a", "b")
-	dg.Add("a", "c")
-	dg.Add("b", "c")
-	dg.Display()
+	dg.Add("0", "1")
+	dg.Add("0", "3")
+	dg.Add("1", "2")
+	dg.Add("2", "4")
+	// dg.Add("3", "4")
+
+	dg.BFS("0")
+	dg.DFS("0")
 }
 
 // 树的特效 一对多
