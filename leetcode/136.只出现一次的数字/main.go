@@ -2,18 +2,14 @@ package main
 
 import "fmt"
 
-func singleNumber(nums []int) int {
-	m := make(map[int]int)
-	for _, v := range nums {
-		m[v]++
-	}
+// 判断两个数相等用异或
 
-	for k, v := range m {
-		if v == 1 {
-			return k
-		}
+func singleNumber(nums []int) int {
+	result := 0
+	for i := 0; i < len(nums); i++ {
+		result = result ^ nums[i]
 	}
-	return 0
+	return result
 }
 
 func main() {
