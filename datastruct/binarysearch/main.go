@@ -9,15 +9,12 @@ func FindMin(nums []int, target int) int { // 找到第一个等于targe的值
 	for low <= high {
 		mid := low + (high-low)>>1
 		if nums[mid] >= target {
-			high = high - 1
+			high = mid - 1
 		} else {
-			low = low + 1
+			low = mid + 1
 		}
 	}
 
-	if low >= len(nums) || nums[low] != target {
-		return -1
-	}
 	return low
 }
 
