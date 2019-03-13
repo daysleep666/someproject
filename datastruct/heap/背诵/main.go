@@ -29,39 +29,36 @@ func CheckMin(data []int, lo, hi int) bool {
 	return true
 }
 
-// 小顶堆
-func heapify(nums []int, start, end int) {
-	for i := end / 2; i >= 0; i-- {
-		downHeap(nums, i, end)
+// 大顶堆
+func heapSort(nums []int) {
+	heapify(nums, 0, len(nums)-1)
+	for i := len(nums) - 1; i > 0; i-- {
+		nums[0], nums[i] = nums[i], nums[0]
+		heapify(nums, 0, i-1)
 	}
 }
 
-func downHeap(nums []int, start int, end int) {
+func heapify(nums []int, low, high int) {
+	for i := (high - 1) / 2; i >= low; i-- {
+		down(nums, i, high)
+	}
+}
+
+func down(nums []int, low, high int) {
+	i := low
 	for {
-		childIndex := start
-		if start*2+1 < end && nums[start] > nums[start*2+1] {
-			childIndex = start*2 + 1
+		childIndex := i
+		if i*2+1 <= high && nums[i] < nums[i*2+1] {
+			childIndex = i*2 + 1
 		}
-		if start*2+2 < end && nums[childIndex] > nums[start*2+2] {
-			childIndex = start*2 + 2
+		if i*2+2 <= high && nums[childIndex] < nums[i*2+2] {
+			childIndex = i*2 + 2
 		}
-		if start != childIndex {
-			nums[start], nums[childIndex] = nums[childIndex], nums[start]
-			start = childIndex
-		} else {
+		if childIndex == i {
 			break
 		}
+		nums[i], nums[childIndex] = nums[childIndex], nums[i]
 	}
-}
-
-func heapSort(nums []int) { // 小顶堆
-	heapify(nums, 0, len(nums)-1)
-
-	for i := len(nums) - 1; i >= 0; i-- { // 循环将堆顶元素移到数组的最后。  由大到小排序
-		nums[0], nums[i] = nums[i], nums[0]
-		heapify(nums, 0, i)
-	}
-
 }
 
 func main() {
