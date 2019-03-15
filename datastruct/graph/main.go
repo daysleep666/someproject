@@ -1,17 +1,22 @@
 package main
 
-import "github.com/daysleep666/someproject/datastruct/graph/graph"
+import (
+	"fmt"
+
+	"github.com/daysleep666/someproject/datastruct/graph/graph"
+)
 
 func main() {
-	dg := graph.Init()
-	dg.Add("0", "1")
-	dg.Add("0", "3")
-	dg.Add("1", "2")
-	dg.Add("2", "4")
-	// dg.Add("3", "4")
+	dg := graph.NewGraph()
+	dg.Push(1, 2)
+	dg.Push(1, 3)
+	dg.Push(1, 4)
+	dg.Push(2, 3)
+	dg.Push(4, 5)
 
-	dg.BFS("0")
-	dg.DFS("0")
+	dg.BFS(1)
+	fmt.Println(dg.M)
+
 }
 
 // 树的特效 一对多
