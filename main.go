@@ -1,20 +1,19 @@
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"strconv"
-)
+import "fmt"
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	n := scanner.Text()
-	ni, _ := strconv.Atoi(n)
-	if ni%2 == 0 && ni != 2 {
-		fmt.Println("YES")
-	} else {
-		fmt.Println("NO")
+	for i := 0; i < 120; i++ {
+		a(i)
 	}
+}
+
+func a(count int) {
+	a := make([]int, 10)
+
+	if len(a) < count {
+		fmt.Println("large")
+		return
+	}
+	fmt.Println(a[:count])
 }
