@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-// 带权有向图
+// 带权无向图
 
 const (
 	max = 99999999
