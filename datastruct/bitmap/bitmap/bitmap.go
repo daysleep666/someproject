@@ -1,6 +1,4 @@
-package main
-
-import "fmt"
+package bitmap
 
 type BitMap struct {
 	Bits  int
@@ -27,15 +25,4 @@ func (bm *BitMap) IsExist(num int) bool {
 	index := num / 8
 	bits := uint(num % 8)
 	return bm.Bytes[index]&(1<<bits) != 0
-}
-
-func main() {
-	bm := NewBitMap(10)
-	bm.Set(3)
-	bm.Set(5)
-	bm.Set(9)
-	fmt.Println(bm.IsExist(3))
-	fmt.Println(bm.IsExist(5))
-	fmt.Println(bm.IsExist(9))
-	fmt.Println(bm.IsExist(10))
 }
