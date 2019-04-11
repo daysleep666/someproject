@@ -152,3 +152,15 @@ FROM ut
 NATURAL JOIN
 user,toy;
 
+子查询
+SELECT toy_id FROM ut WHERE user_id IN (SELECT id FROM user ORDER BY id DESC)  LIMIT 2;
+
+别名
+SELECT u.name AS username,t.name AS toyname 
+FROM ut 
+INNER JOIN user AS u, toy AS t
+WHERE ut.toy_id =t.id AND ut.user_id=u.id;
+
+SELECT id,name,(SELECT id FROM ut WHERE user_id=u.id) AS tid FROM user u;
+
+非关联子查询：如果子查询可以独立运行且不会引用外层查询的任何结果，即成为非关联子查询
