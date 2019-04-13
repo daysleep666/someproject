@@ -1,0 +1,52 @@
+drop table my_contacts; 
+
+CREATE TABLE my_contacts
+(
+    contact_id INT NOT NULL AUTO_INCREMENT,
+    last_name varchar(30) default NULL,
+    first_name varchar(20) default NULL,
+    birthday date default NULL,
+    PRIMARY KEY (contact_id)
+);
+
+INSERT INTO my_contacts
+(
+    contact_id,
+    last_name,
+    first_name,
+    birthday
+)
+VALUES 
+(
+    2,
+    'xiaoming',
+    'wang',
+    '2019-1-1'
+);
+
+ALTER TABLE my_contacts
+ADD COLUMN location varchar(100) NOT NULL DEFAULT 'CHINA';
+
+ALTER TABLE my_contacts
+RENAME TO contacts;
+
+ALTER TABLE my_contacts 
+CHANGE COLUMN contact_id id;
+
+UPDATE my_contacts
+SET first_name =
+CASE 
+    WHEN contact_id = 1 THEN 'zhang'
+    WHEN contact_id = 3 THEN 'zhao'
+    ELSE 'QIAN'
+END;
+
+SELECT * FROM my_contacts ORDER BY first_name;
+
+UPDATE my_contacts
+SET birthday = 
+CASE 
+    WHEN contact_id = 1 THEN '2019-02-03'
+    WHEN contact_id = 2 THEN '2019-12-03'
+    WHEN contact_id = 3 THEN '2019-6-03'
+END;
