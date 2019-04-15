@@ -164,3 +164,72 @@ WHERE ut.toy_id =t.id AND ut.user_id=u.id;
 SELECT id,name,(SELECT id FROM ut WHERE user_id=u.id) AS tid FROM user u;
 
 非关联子查询：如果子查询可以独立运行且不会引用外层查询的任何结果，即成为非关联子查询
+
+左联接 LEFT OUTER JOIN
+会匹配左表中的每一行及右表中符合条件的行
+
+ALTER TABLE ut ADD PRIMARY KEY (user_id,toy_id);
+
+SELECT u.name,ut.toy_id FROM user AS u 
+LEFT OUTER JOIN ut 
+ON u.id=ut.user_id;
+
+ON是建立联系
+WHERE是筛选
+
+自引用外键
+
+自链接把单一表当成两张具有完全相同的信息的表来进行查询
+
+求并集 去重 UNION
+SELECT name FROM user
+UNION
+SELECT name FROM toy;
+
+求并集 不去重 UNION ALL
+SELECT name FROM user
+UNION ALL
+SELECT name FROM toy;
+
+CREATE TABLE my_union AS 
+SELECT name FROM user
+UNION ALL
+SELECT name FROM toy;
+
+交集 INTERSECT
+
+差集 EXCEPT
+
+UNIQUE 保证数据唯一性
+
+ALTER TABLE user ADD sex CHAR(1) CHECK (sex IN ('X','Y'));
+
+创建视图
+CREATE VIEW my_view AS 
+SELECT u.name AS username,t.name AS toyname FROM ut
+INNER JOIN user AS u,toy AS t
+WHERE u.id=ut.user_id AND t.id=ut.toy_id;
+
+事务 -- rollback
+START TRANSACTION;
+SELECT * FROM user WHERE id = 1; 
+UPDATE user SET SEX = 'A' WHERE id = 1;
+SELECT * FROM user WHERE id = 1;
+ROLLBACK;
+SELECT * FROM user WHERE id = 1;
+
+事务 -- commit
+START TRANSACTION;
+SELECT * FROM user WHERE id = 1; 
+UPDATE user SET SEX = 'A' WHERE id = 1;
+SELECT * FROM user WHERE id = 1;
+COMMIT;
+SELECT * FROM user WHERE id = 1;
+
+查找重复的电子邮箱
+SELECT Email FROM Person
+GROUP BY Email
+HAVING (COUNT(*)>1);
+
+HAVING 组后的各种数据的筛选
+WHERE 组前的数据筛选
