@@ -9,7 +9,8 @@ import (
 
 func main() {
 	// a()
-	b()
+	// b()
+	pipelineTest(getClient())
 	time.Sleep(time.Second * 3)
 }
 
@@ -34,20 +35,20 @@ func b() {
 
 func pipelineTest(r *redis.Client) {
 	r.Del("a", "b")
-
-	// r.Watch(func(tx *redis.Tx) error {
-	// 	p := tx.Pipeline()
-	// 	tx.Set("a", "a", 0)
-	// 	time.Sleep(time.Second * 5)
-	// 	tx.Set("b", "b", 0)
-	// 	return nil
-	// }, "a")
-
-	p := r.Pipeline()
-	p.Set("a", "a", 0)
-	fmt.Println("a:", p.Get("a").Val())
-	p.Set("b", "b", 0)
-	p.Exec()
+	r.Set("a", 0, time.Second)
+	err := r.Watch(func(tx *redis.Tx) error {
+		p := tx.TxPipeline()
+		p.Set("b", "a", 0)
+		time.Sleep(time.Second * 2)
+		_, err := p.Exec()
+		return err
+	}, "a")
+	fmt.Println("result =", err)
+	// p := r.Pipeline()
+	// p.Set("a", "a", 0)
+	// fmt.Println("a:", p.Get("a").Val())
+	// p.Set("b", "b", 0)
+	// p.Exec()
 	// p := r.Pipeline()
 	// p.Set("hello", "world", 0)
 	// tp := p.TxPipeline()
