@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"sync"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/go-redis/redis"
 )
@@ -12,8 +13,8 @@ import (
 var num int
 
 func DoSomething(c *redis.Client, lockName string) {
-	var locked int
-	if locked = acquireLock(c, lockName); locked == -1 { // 获取锁失败了
+	var locked string
+	if locked = acquireLock(c, lockName); locked == "" { // 获取锁失败了
 		// fmt.Printf("oh shit\n")
 		return
 	}
@@ -26,8 +27,8 @@ func DoSomething(c *redis.Client, lockName string) {
 	releaseLock(c, lockName, locked)
 }
 
-func acquireLock(c *redis.Client, lockName string) int {
-	iden := rand.Intn(1000000)
+func acquireLock(c *redis.Client, lockName string) string {
+	iden := bson.NewObjectId().Hex()
 	end := time.Now().Unix() + 10 // 最多尝试十秒获得锁
 	for time.Now().Unix() < end {
 		cmd := c.SetNX(lockName, iden, 5*time.Second)
@@ -36,12 +37,12 @@ func acquireLock(c *redis.Client, lockName string) int {
 		}
 		time.Sleep(time.Nanosecond * 100)
 	}
-	return -1
+	return ""
 }
 
-func releaseLock(c *redis.Client, lockName string, iden int) {
+func releaseLock(c *redis.Client, lockName string, iden string) {
 	err := c.Watch(func(tx *redis.Tx) error { // 确保这把锁除了我没别人动过
-		if c.Get(lockName).Val() == fmt.Sprintf("%v", iden) { // 确保这是我的锁
+		if c.Get(lockName).Val() == iden { // 确保这是我的锁
 			t := tx.TxPipeline()
 			t.Del(lockName)
 			t.Exec()
