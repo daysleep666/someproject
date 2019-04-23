@@ -38,6 +38,7 @@ func acquireLock(c *redis.Client, lockName string) string {
 		time.Sleep(time.Nanosecond * 100)
 	}
 	return ""
+
 }
 
 func releaseLock(c *redis.Client, lockName string, iden string) {
