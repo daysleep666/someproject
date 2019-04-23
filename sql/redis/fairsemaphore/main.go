@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -13,18 +12,20 @@ import (
 func main() {
 	wg := sync.WaitGroup{}
 	c := getClient()
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 20; i++ {
 		wg.Add(1)
 		go func(i int) {
 			identifier := acquireLock(c, "semnamelock")
-			if identifier != -1 {
-				if r := AcquireFairSemaphore(c, "semname", 10); r != "" {
+			if identifier != "" {
+				r := AcquireFairSemaphore(c, "semname", 10)
+				releaseLock(c, "semnamelock", identifier) // 删除锁
+				if r != "" {                              //成功获得信号量
 					fmt.Printf("%v success\n", i)
+					time.Sleep(time.Second * 3)
 				} else {
-					fmt.Println("failed")
+					fmt.Printf("%v failed\n", i)
 				}
 			}
-			releaseLock(c, "semnamelock", identifier)
 			wg.Done()
 		}(i)
 	}
@@ -72,8 +73,8 @@ func ReleaseFairSemaphore(r *redis.Client, semname, identifier string) {
 //----------------------------------------------------------------------
 // 锁的代码
 
-func acquireLock(c *redis.Client, lockName string) int {
-	iden := rand.Intn(1000000)
+func acquireLock(c *redis.Client, lockName string) string {
+	iden := bson.NewObjectId().Hex()
 	end := time.Now().Unix() + 10 // 最多尝试十秒获得锁
 	for time.Now().Unix() < end {
 		cmd := c.SetNX(lockName, iden, 5*time.Second)
@@ -82,12 +83,12 @@ func acquireLock(c *redis.Client, lockName string) int {
 		}
 		time.Sleep(time.Nanosecond * 100)
 	}
-	return -1
+	return ""
 }
 
-func releaseLock(c *redis.Client, lockName string, iden int) {
+func releaseLock(c *redis.Client, lockName string, iden string) {
 	err := c.Watch(func(tx *redis.Tx) error { // 确保这把锁除了我没别人动过
-		if c.Get(lockName).Val() == fmt.Sprintf("%v", iden) { // 确保这是我的锁
+		if c.Get(lockName).Val() == iden { // 确保这是我的锁
 			t := tx.TxPipeline()
 			t.Del(lockName)
 			t.Exec()
