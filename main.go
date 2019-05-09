@@ -8,6 +8,13 @@ import (
 )
 
 func main() {
+	{
+		a := "aaa"
+		defer fmt.Println(a, "222")
+	}
+	fmt.Println("111")
+
+	return
 	p := pdd.NewPdd(&pdd.Config{
 		ClientId:     "",
 		ClientSecret: "",
