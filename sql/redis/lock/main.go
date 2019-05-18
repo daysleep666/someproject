@@ -22,6 +22,7 @@ func DoSomething(c *redis.Client, lockName string) {
 	if num > 0 {
 		fmt.Printf("第 %v 抢到了\n", num)
 		num--
+		// time.Sleep(time.Second * 3)
 	}
 	// fmt.Printf("i'm going %v\n", locked)
 	releaseLock(c, lockName, locked)
@@ -57,9 +58,9 @@ func releaseLock(c *redis.Client, lockName string, iden string) {
 func main() {
 	num = 10
 	wg := sync.WaitGroup{}
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
+	for i := 0; i < 20; i++ {
 		c := getClient()
+		wg.Add(1)
 		go func() {
 			DoSomething(c, "add")
 			wg.Done()
