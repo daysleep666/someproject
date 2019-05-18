@@ -6,15 +6,10 @@ import (
 )
 
 func main() {
-	var head *BPLUSTREEENODE
-	for i := 0; i <= 10; i++ {
-		// for i := 5; i >= 0; i-- {
-		n := rand.Intn(20)
-		// for _, n := range []int{49, 40, 36, 39, 90, 50, 51} {
-		head = Insert(head, n, 1)
-		// var num int
-		// head.Symbol(&num)
-		// head.DisplayList()
+	var head *BPlusNode
+	for i := 0; i < 10; i++ {
+		n := rand.Intn(100)
+		head = Insert(head, n, i)
 	}
 	var num int
 	fmt.Println()
@@ -26,62 +21,49 @@ func main() {
 //--------------------------
 
 const M = 3
+const newIndex = (M + 1) / 2 // 拆分的时候以这个值为准
 
-type BPLUSTREEENODE struct {
-	Key      int               // 索引值
-	Children []*BPLUSTREEENODE // 子树
+type BPlusNode struct {
+	Key      int          // 索引值
+	Children []*BPlusNode // 子树
 	// leaf
-	Value     int             // 真正的数据
-	FrontNode *BPLUSTREEENODE // 指向相邻的叶子节点
-	NextNode  *BPLUSTREEENODE // 指向相邻的叶子节点
-	IsLeaf    bool            // 是否是叶子节点
+	Value     int        // 真正的数据
+	FrontNode *BPlusNode // 指向相邻的叶子节点
+	NextNode  *BPlusNode // 指向相邻的叶子节点
+	IsLeaf    bool       // 是否是叶子节点
 	symbol    int
 }
 
-func NewNode() *BPLUSTREEENODE {
-	return &BPLUSTREEENODE{Children: make([]*BPLUSTREEENODE, 0)}
+func NewNode() *BPlusNode {
+	return &BPlusNode{Children: make([]*BPlusNode, 0)}
 }
 
-func (n *BPLUSTREEENODE) InsertNode(key int) *BPLUSTREEENODE {
+func (n *BPlusNode) InsertNodeWithChildren(key int, children []*BPlusNode) *BPlusNode {
 	newNode := NewNode()
 	newNode.Key = key
+	newNode.Children = children
 	for i, v := range n.Children {
 		if key < v.Key {
-			tmp := make([]*BPLUSTREEENODE, 0)
+			tmp := make([]*BPlusNode, 0)
 			tmp = append(tmp, n.Children[:i]...)
 			tmp = append(tmp, newNode)
 			tmp = append(tmp, n.Children[i:]...)
-			newNode.FrontNode = n.Children[i].FrontNode
-			newNode.NextNode = n.Children[i]
-			if n.Children[i].FrontNode != nil {
-				n.Children[i].FrontNode.NextNode = newNode
-			}
-			n.Children[i].FrontNode = newNode
-
 			n.Children = tmp
 			return newNode
 		}
-	}
-	if len(n.Children) > 0 {
-		newNode.NextNode = n.Children[len(n.Children)-1].NextNode
-		if newNode.NextNode != nil {
-			newNode.NextNode.FrontNode = newNode
-		}
-		n.Children[len(n.Children)-1].NextNode = newNode
-		newNode.FrontNode = n.Children[len(n.Children)-1]
 	}
 	n.Children = append(n.Children, newNode)
 	return newNode
 }
 
-func (n *BPLUSTREEENODE) InsertLeaf(key, value int) *BPLUSTREEENODE {
+func (n *BPlusNode) InsertLeaf(key, value int) *BPlusNode {
 	newNode := NewNode()
 	newNode.Key = key
 	newNode.Value = value
 	newNode.IsLeaf = true
 	for i, v := range n.Children {
 		if key < v.Key {
-			tmp := make([]*BPLUSTREEENODE, 0)
+			tmp := make([]*BPlusNode, 0)
 			tmp = append(tmp, n.Children[:i]...)
 			tmp = append(tmp, newNode)
 			tmp = append(tmp, n.Children[i:]...)
@@ -108,23 +90,22 @@ func (n *BPLUSTREEENODE) InsertLeaf(key, value int) *BPLUSTREEENODE {
 	return newNode
 }
 
-func (n *BPLUSTREEENODE) IsFull() bool {
+func (n *BPlusNode) IsFull() bool {
 	return len(n.Children) > M
 }
 
-func Insert(head *BPLUSTREEENODE, key, value int) *BPLUSTREEENODE {
+func Insert(head *BPlusNode, key, value int) *BPlusNode {
 	if head == nil {
 		head := NewNode()
-		head.Key = key
-		node := head.InsertNode(key)
-		node.Value = value
-		node.IsLeaf = true
+		head.InsertLeaf(key, value)
 		return head
 	}
 
-	parentNodeList := make([]*BPLUSTREEENODE, 0) // 记录每一层的父节点
+	parentNodeList := make([]*BPlusNode, 0) // 记录每一层的父节点
 	node := head
 	isFind := false
+
+	// 找到插入的位置
 	for !isFind {
 		parentNodeList = append(parentNodeList, node)
 		var i, l int = 0, len(node.Children)
@@ -144,10 +125,10 @@ func Insert(head *BPLUSTREEENODE, key, value int) *BPLUSTREEENODE {
 		}
 	}
 
-	leafNode := node.InsertNode(key)
-	leafNode.Value = value
-	leafNode.IsLeaf = true
+	// 插入叶子节点
+	node.InsertLeaf(key, value)
 
+	// 如果 Children超过规定的M，就需要拆分节点
 	parentIndex := len(parentNodeList) - 1
 	for {
 		node = parentNodeList[parentIndex]
@@ -159,28 +140,26 @@ func Insert(head *BPLUSTREEENODE, key, value int) *BPLUSTREEENODE {
 		if parentIndex < 0 {
 			break
 		}
+
+		// 假设M=3，将[1,2,3,4]拆分为[1,2],[3,4]
 		newParentNode := parentNodeList[parentIndex]
-		newIndex := (M + 1) / 2
 		newChildren := node.Children[:newIndex]
-		nnn := newParentNode.InsertNode(newChildren[newIndex-1].Key)
-		nnn.Children = newChildren
+		newParentNode.InsertNodeWithChildren(newChildren[newIndex-1].Key, newChildren)
 		node.Children = node.Children[newIndex:]
 	}
 
 	newHead := NewNode()
 	newHead.Key = node.Key
-	newIndex := (M + 1) / 2
 	newChildren := node.Children[:newIndex]
-	nnn := NewNode()
-	nnn.Key = newChildren[newIndex-1].Key
-	nnn.Children = newChildren
+	newHead.InsertNodeWithChildren(newChildren[newIndex-1].Key, newChildren)
+
 	node.Children = node.Children[newIndex:]
-	newHead.Children = append(newHead.Children, nnn, node)
+	newHead.InsertNodeWithChildren(newChildren[newIndex-1].Key, node.Children)
 	updateLastMax(newHead, key)
 	return newHead
 }
 
-func updateLastMax(head *BPLUSTREEENODE, key int) {
+func updateLastMax(head *BPlusNode, key int) {
 	for head != nil && !head.IsLeaf {
 		if key > head.Key {
 			head.Key = key
@@ -189,7 +168,7 @@ func updateLastMax(head *BPLUSTREEENODE, key int) {
 	}
 }
 
-func (n *BPLUSTREEENODE) Symbol(num *int) {
+func (n *BPlusNode) Symbol(num *int) {
 	if len(n.Children) != 0 {
 		(*num)++
 	}
@@ -201,15 +180,15 @@ func (n *BPLUSTREEENODE) Symbol(num *int) {
 	}
 }
 
-func (n *BPLUSTREEENODE) Display() {
+func (n *BPlusNode) Display() {
 	fmt.Println("\n", "--------------------")
-	list := make([]*BPLUSTREEENODE, 0)
+	list := make([]*BPlusNode, 0)
 	symbol := n.symbol
 	for _, v := range n.Children {
 		list = append(list, v)
 	}
 	for len(list) > 0 {
-		tmpList := make([]*BPLUSTREEENODE, 0)
+		tmpList := make([]*BPlusNode, 0)
 		for _, v := range list {
 			if v.symbol != symbol {
 				symbol = v.symbol
@@ -229,7 +208,7 @@ func (n *BPLUSTREEENODE) Display() {
 	fmt.Println("\n", "--------------------")
 }
 
-func (n *BPLUSTREEENODE) DisplayList() {
+func (n *BPlusNode) DisplayList() {
 	fmt.Println("\n", "--------------------")
 	node := n
 	for !node.IsLeaf {
