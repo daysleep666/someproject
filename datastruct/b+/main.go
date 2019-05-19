@@ -154,7 +154,7 @@ func Insert(head *BPlusNode, key, value int) *BPlusNode {
 	newHead.InsertNodeWithChildren(newChildren[newIndex-1].Key, newChildren)
 
 	node.Children = node.Children[newIndex:]
-	newHead.InsertNodeWithChildren(newChildren[newIndex-1].Key, node.Children)
+	newHead.InsertNodeWithChildren(node.Children[len(node.Children)-1].Key, node.Children)
 	updateLastMax(newHead, key)
 	return newHead
 }
