@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/liunian1004/pdd"
 )
@@ -44,7 +45,7 @@ func main() {
 	st, _ := json.Marshal(res)
 	fmt.Println(res.Url, err)
 	fmt.Println(string(st))
-	// res1, _ := d.OrderListIncrementGet(time.Now().Unix()-86400, time.Now().Unix())
+	res1, _ := d.OrderListIncrementGet(time.Now().Unix()-86400, time.Now().Unix())
 	// fmt.Println("count:", res1.TotalCount)
 	// for _, v := range res1.OrderList {
 	// 	fmt.Println(v.)
