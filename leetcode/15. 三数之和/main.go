@@ -5,52 +5,67 @@ import (
 	"sort"
 )
 
-var result [][]int
-
 func threeSum(nums []int) [][]int {
 	sort.Ints(nums)
-	result = make([][]int, 0)
+	result := make([][]int, 0)
+
+	m := make(map[int]bool)
 	for i := 0; i < len(nums); i++ {
-		k := len(nums)
-		for j := 1; j < k; j++ {
-			if v := bs(nums, j, k-1, -(nums[i] + nums[j])); v != -1 && !find(result, nums[i], nums[j], nums[v]) && i != j && i != v && j != v {
-				result = append(result, []int{nums[i], nums[j], nums[v]})
-				k = v
-			}
+		if m[nums[i]] {
+			continue
+		}
+		m[nums[i]] = true
+		tmp := find(nums, nums[i], i)
+		result = append(result, tmp...)
+		// break
+	}
+	return result
+}
+
+func find(num []int, dst int, remain int) [][]int {
+	var result [][]int
+	for i, j := remain+1, len(num)-1; i < j; {
+		if i > remain+1 && num[i] == num[i-1] {
+			i++
+			continue
+		}
+		if j < len(num)-1 && num[j] == num[j+1] {
+			j--
+			continue
+		}
+		if num[i]+num[j]+dst == 0 {
+			a, b, c := so(num[i], num[j], dst)
+			// fmt.Println(a,b,c)
+			result = append(result, []int{a, b, c})
+			i++
+		} else if num[i]+num[j]+dst > 0 {
+			j--
+		} else {
+			i++
 		}
 	}
 	return result
 }
 
-func find(r [][]int, a, b, c int) bool {
-	for _, v := range r {
-		if (v[0] == a && v[1] == b) || (v[0] == a && v[1] == c) || (v[0] == b && v[1] == a) || (v[0] == b && v[1] == c) || (v[0] == c && v[1] == a) || (v[0] == c && v[1] == b) {
-			return true
-		}
+func so(a, b, c int) (int, int, int) {
+	if a > b {
+		a, b = b, a
 	}
-	return false
-}
-
-func bs(nums []int, low, high int, target int) int {
-	for low <= high {
-		mid := low + (high-low)>>1
-		if nums[mid] > target {
-			high = mid - 1
-		} else {
-			low = mid + 1
-		}
+	if a > c {
+		a, c = c, a
 	}
-	if high >= 0 && nums[high] == target {
-		return high
+	if b > c {
+		b, c = c, b
 	}
-	return -1
+	return a, b, c
 }
 
 func main() {
-	fmt.Println(threeSum([]int{-1, 0, 1, 2, -1, -4}))
-	fmt.Println(threeSum([]int{-1, 0, 1}))
-	fmt.Println(threeSum([]int{0, 0, 0}))
-	fmt.Println(threeSum([]int{}))
-	fmt.Println(threeSum([]int{-2, 0, 1, 1, 2}))
+	// fmt.Println(threeSum([]int{-1, 0, 1, 2, -1, -4}))
+	// fmt.Println(threeSum([]int{-1, 0, 1}))
+	// fmt.Println(threeSum([]int{0, 0, 0, 0}))
+	// fmt.Println(threeSum([]int{}))
+	// fmt.Println(threeSum([]int{-2, 0, 1, 1, 2}))
+	fmt.Println(threeSum([]int{-4, -2, 1, -5, -4, -4, 4, -2, 0, 4, 0, -2, 3, 1, -5, 0}))
 
 }
