@@ -2,15 +2,19 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 )
 
 func main() {
 	var head *BPlusNode
-	for i := 0; i < 10; i++ {
-		n := rand.Intn(100)
-		head = Insert(head, n, i)
-	}
+	// for i := 0; i < 4; i++ {
+	// 	// n := rand.Intn(100)
+	// 	head = Insert(head, i, i)
+	// }
+	head = Insert(head, 4, 0)
+	head = Insert(head, 3, 0)
+	head = Insert(head, 2, 0)
+	head = Insert(head, 1, 0)
+
 	var num int
 	fmt.Println()
 	head.Symbol(&num)
