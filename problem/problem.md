@@ -35,20 +35,21 @@ SELECT * FROM table WHERE id = 3 FOR UPDATE
 
 # innodb 的 MVCC 怎么实现的？
 
-预备阅读：https://segmentfault.com/a/1190000012650596
+每行数据都可能有多个版本，事务只能看到小于等于自己当前事务id且不活跃的数据的版本。数据只记录当前版本，历史版本是通过当前版本和undolog计算出来的。
 
 # innodb的 redo log
 
-数据恢复
+物理日志，记录的是被修改的数据页。循环写入。按照策略(定时，写满了)写入到硬盘中。保证了崩溃了，数据也能持久化。
 
 # 什么是乐观锁，什么是悲观锁，在 mysql 中如何实现的
 
+    乐观锁：先修改，提交的时候在检查数据有没有被修改过，如果没被修改过则成功，反之失败
+    悲观锁：修改数据前先检查有没有锁，如果没有锁则加锁然后修改数据，如果有锁则等待获取锁
+    mysql中有s锁和x锁，update数据前会加x锁
 
 # 说下你对线程安全的理解
 
 预备阅读：https://stackoverflow.com/questions/261683/what-is-meant-by-thread-safe-code
-
-
 
 # golang map 概述
 
