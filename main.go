@@ -2,26 +2,17 @@ package main
 
 import (
 	"fmt"
-	"os/exec"
-	"time"
+	"net/http"
+	"os"
 )
 
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("hello world")
+}
+
 func main() {
-	go func() {
-		for {
-			fmt.Println("报告下还活着")
-			time.Sleep(time.Second * 10)
-		}
-	}()
-	for {
-		c := "backup.sh"
-		cmd := exec.Command("sh", c)
-		out, err := cmd.Output()
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(string(out))
-		}
-		time.Sleep(time.Hour * 1)
-	}
+	http.HandleFunc("/heartbeat", IndexHandler)
+	ip := "0.0.0.0:" + os.Args[1]
+	fmt.Println("listen in", ip)
+	http.ListenAndServe(ip, nil)
 }
