@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"os"
+
+	"github.com/go-redis/redis"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("hello world")
-}
-
 func main() {
-	http.HandleFunc("/heartbeat", IndexHandler)
-	ip := "0.0.0.0:" + os.Args[1]
-	fmt.Println("listen in", ip)
-	http.ListenAndServe(ip, nil)
+	client := redis.NewClient(&redis.Options{
+		Addr:     "127.0.0.1:6379",
+		Password: "",
+		DB:       0,
+	})
+	cmd := client.Get("test1")
+	fmt.Println(cmd.Err())
+	if cmd.Err().Error() == "redis: nil" {
+		fmt.Println("none key")
+	}
 }
