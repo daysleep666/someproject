@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/daysleep666/someproject/grpc/pb"
@@ -18,11 +21,15 @@ func (s *server) GetStream(req *pb.StreamReqData, res pb.Greeter_GetStreamServer
 	i := 0
 	for {
 		i++
-		res.Send(&pb.StreamResData{Data: fmt.Sprintf("%v", time.Now().Unix())})
-		if i > 10 {
+		err := res.Send(&pb.StreamResData{Data: fmt.Sprintf("%v", time.Now().Unix())})
+		if err != nil {
+			log.Println("getstream", err)
 			break
 		}
-		time.Sleep(time.Second)
+		// if i > 10 {
+		// 	break
+		// }
+		// time.Sleep(time.Second)
 	}
 	return nil
 }
@@ -44,8 +51,8 @@ func (s *server) AllStream(allStr pb.Greeter_AllStreamServer) error {
 	wg.Add(2)
 	go func() {
 		for {
-			data, _ := allStr.Recv()
-			log.Println(data)
+			allStr.Recv()
+			// log.Println(data)
 		}
 		wg.Done()
 	}()
@@ -64,14 +71,32 @@ func (s *server) AllStream(allStr pb.Greeter_AllStreamServer) error {
 
 func main() {
 	//监听端口
-	lis, err := net.Listen("tcp", ":1234")
+	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		return
 	}
 	//创建一个grpc 服务器
 	s := grpc.NewServer()
+
 	//注册事件
 	pb.RegisterGreeterServer(s, &server{})
 	//处理链接
-	s.Serve(lis)
+	go s.Serve(lis)
+
+	log.Println("start")
+	// select {
+	// case <-time.After(time.Second * 5):
+	// 	break
+	// }
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	sg := <-quit
+	log.Println("Receive signal %v and shutdown server...", sg)
+
+	fmt.Println("prepare...............")
+	st := time.Now().Unix()
+	s.GracefulStop()
+	a := time.Now().Unix() - st
+	// time.Sleep(time.Second * 10)
+	log.Println("end", a)
 }
